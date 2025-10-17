@@ -1,0 +1,137 @@
+<% layout('layouts/layout') %>
+
+<div class="container my-5">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-lg-8 mx-auto text-center">
+      <h1 class="display-5 fw-bold text-primary mb-3">Study Tips & Guides</h1>
+      <p class="lead text-muted">Get expert tips and guides for studying abroad, scholarship applications, and academic success.</p>
+    </div>
+  </div>
+
+  <!-- Posts Grid -->
+  <div class="row">
+    <div class="col-lg-8">
+      <% if (posts && posts.length > 0) { %>
+        <% posts.forEach(post => { %>
+          <article class="card mb-4 border-0 shadow-sm">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <% if (post.featured) { %>
+                  <span class="badge bg-warning text-dark">Featured</span>
+                <% } %>
+                <small class="text-muted">
+                  <%= new Date(post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
+                </small>
+              </div>
+              
+              <h2 class="h4 card-title">
+                <a href="/tips/<%= post.slug %>" class="text-decoration-none text-dark">
+                  <%= post.title %>
+                </a>
+              </h2>
+              
+              <p class="card-text text-muted mb-3"><%= post.summary %></p>
+              
+              <% if (post.tags && post.tags.length > 0) { %>
+                <div class="mb-3">
+                  <% post.tags.forEach(tag => { %>
+                    <span class="badge bg-light text-dark me-1"><%= tag %></span>
+                  <% }) %>
+                </div>
+              <% } %>
+              
+              <a href="/tips/<%= post.slug %>" class="btn btn-primary">Read More</a>
+            </div>
+          </article>
+        <% }) %>
+        
+        <!-- Pagination -->
+        <% if (pagination.totalPages > 1) { %>
+          <nav aria-label="Tips pagination">
+            <ul class="pagination justify-content-center">
+              <% if (pagination.hasPrev) { %>
+                <li class="page-item">
+                  <a class="page-link" href="/tips?page=<%= pagination.currentPage - 1 %>">Previous</a>
+                </li>
+              <% } %>
+              
+              <% for (let i = Math.max(1, pagination.currentPage - 2); i <= Math.min(pagination.totalPages, pagination.currentPage + 2); i++) { %>
+                <li class="page-item <%= i === pagination.currentPage ? 'active' : '' %>">
+                  <a class="page-link" href="/tips?page=<%= i %>"><%= i %></a>
+                </li>
+              <% } %>
+              
+              <% if (pagination.hasNext) { %>
+                <li class="page-item">
+                  <a class="page-link" href="/tips?page=<%= pagination.currentPage + 1 %>">Next</a>
+                </li>
+              <% } %>
+            </ul>
+          </nav>
+        <% } %>
+      <% } else { %>
+        <div class="text-center py-5">
+          <h3>No posts found</h3>
+          <p class="text-muted">Check back soon for new study tips and guides!</p>
+        </div>
+      <% } %>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Newsletter</h5>
+          <p class="text-muted small">Get the latest tips delivered to your inbox</p>
+          <form id="newsletter-form" class="newsletter-form">
+            <input type="hidden" name="_token" value="<%= csrfToken %>">
+            <input type="hidden" name="source" value="tips-page">
+            <div class="input-group">
+              <input type="email" class="form-control" placeholder="Your email" name="email" required>
+              <button class="btn btn-primary" type="submit">
+                <span class="spinner-border spinner-border-sm me-1 d-none" role="status"></span>
+                Subscribe
+              </button>
+            </div>
+          </form>
+          <div class="mt-2">
+            <div class="alert alert-success alert-sm d-none" id="newsletter-success"></div>
+            <div class="alert alert-danger alert-sm d-none" id="newsletter-error"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Popular Categories -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Popular Topics</h5>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="/scholarships?q=essay" class="btn btn-outline-primary btn-sm">Essay Writing</a>
+            <a href="/scholarships?q=visa" class="btn btn-outline-primary btn-sm">Visa Guide</a>
+            <a href="/scholarships?q=application" class="btn btn-outline-primary btn-sm">Applications</a>
+            <a href="/scholarships?degree=Masters" class="btn btn-outline-primary btn-sm">Masters</a>
+            <a href="/scholarships?degree=PhD" class="btn btn-outline-primary btn-sm">PhD</a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Ad Space -->
+      <div class="mt-4 text-center">
+        <% if (site.adsenseClient) { %>
+          <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<%= site.adsenseClient %>"></script>
+          <ins class="adsbygoogle"
+               style="display:block"
+               data-ad-client="<%= site.adsenseClient %>"
+               data-ad-slot="tips-sidebar"
+               data-ad-format="auto"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        <% } else { %>
+          <div class="border border-dashed border-2 p-4 text-muted">
+            Advertisement
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>

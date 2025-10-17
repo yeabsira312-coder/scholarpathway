@@ -1,3 +1,4 @@
+ HEAD
 # ScholarPathway - Scholarship & Study Abroad Blog
 
 A dynamic, database-driven scholarship discovery platform built for Glitch deployment.
@@ -282,3 +283,7 @@ For questions about this codebase or deployment issues, create an issue or conta
 ---
 
 **Built with ❤️ for students worldwide seeking educational opportunities**
+
+# scholarpathway
+ScholarPathway website project
+ a699c0a7558ff4263ccb87410f0ba919f3c313c7

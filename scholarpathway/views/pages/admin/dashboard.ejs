@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin Dashboard | <%= site.name %></title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="admin-page bg-light">
+  <!-- Admin Navigation -->
+  <nav class="navbar navbar-expand-lg admin-nav">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/admin">
+        <i class="fas fa-tachometer-alt me-2"></i>ScholarPathway Admin
+      </a>
+      
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="adminNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="/admin">
+              <i class="fas fa-home me-1"></i>Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/scholarships">
+              <i class="fas fa-graduation-cap me-1"></i>Scholarships
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/posts">
+              <i class="fas fa-edit me-1"></i>Posts
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/countries">
+              <i class="fas fa-globe me-1"></i>Countries
+            </a>
+          </li>
+        </ul>
+        
+        <ul class="navbar-nav">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+              <i class="fas fa-user-circle me-1"></i><%= user.email %>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/" target="_blank">
+                <i class="fas fa-external-link-alt me-1"></i>View Site
+              </a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form method="POST" action="/admin/logout" class="d-inline">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button type="submit" class="dropdown-item">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                  </button>
+                </form>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container-fluid py-4">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <h1 class="h3 mb-1">Welcome back, <%= user.email.split('@')[0] %>!</h1>
+        <p class="text-muted">Here's what's happening with your scholarship platform today.</p>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card admin-card">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="card-title text-brand mb-0"><%= stats.scholarships || 0 %></h5>
+                <p class="card-text text-muted">Total Scholarships</p>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-graduation-cap fa-2x text-brand"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card admin-card">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="card-title text-success mb-0"><%= stats.posts || 0 %></h5>
+                <p class="card-text text-muted">Tips & Guides</p>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-edit fa-2x text-success"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card admin-card">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="card-title text-info mb-0"><%= stats.subscribers || 0 %></h5>
+                <p class="card-text text-muted">Newsletter Subscribers</p>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-envelope fa-2x text-info"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card admin-card">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="card-title text-warning mb-0"><%= stats.contacts || 0 %></h5>
+                <p class="card-text text-muted">Contact Messages</p>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-comments fa-2x text-warning"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-bolt me-2"></i>Quick Actions
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-lg-3 col-md-6 mb-3">
+                <a href="/admin/scholarships/new" class="btn btn-primary w-100">
+                  <i class="fas fa-plus me-2"></i>Add Scholarship
+                </a>
+              </div>
+              <div class="col-lg-3 col-md-6 mb-3">
+                <a href="/admin/posts/new" class="btn btn-success w-100">
+                  <i class="fas fa-plus me-2"></i>Write New Post
+                </a>
+              </div>
+              <div class="col-lg-3 col-md-6 mb-3">
+                <a href="/admin/countries" class="btn btn-info w-100">
+                  <i class="fas fa-globe me-2"></i>Manage Countries
+                </a>
+              </div>
+              <div class="col-lg-3 col-md-6 mb-3">
+                <a href="/" target="_blank" class="btn btn-outline-primary w-100">
+                  <i class="fas fa-external-link-alt me-2"></i>View Live Site
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+      <!-- Recent Scholarships -->
+      <div class="col-lg-6 mb-4">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+              <i class="fas fa-graduation-cap me-2"></i>Recent Scholarships
+            </h6>
+            <a href="/admin/scholarships" class="btn btn-sm btn-outline-primary">View All</a>
+          </div>
+          <div class="card-body p-0">
+            <% if (recentScholarships && recentScholarships.length > 0) { %>
+              <div class="list-group list-group-flush">
+                <% recentScholarships.forEach(scholarship => { %>
+                  <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="flex-grow-1">
+                        <h6 class="mb-1">
+                          <a href="/admin/scholarships/<%= scholarship.id %>/edit" class="text-decoration-none">
+                            <%= scholarship.title %>
+                          </a>
+                        </h6>
+                        <p class="mb-1 text-muted">
+                          <%= scholarship.country_code %> • 
+                          <%= scholarship.degree_levels.join(', ') %>
+                        </p>
+                        <small class="text-muted">
+                          <%= new Date(scholarship.created_at).toLocaleDateString() %>
+                        </small>
+                      </div>
+                      <div class="text-end">
+                        <% if (scholarship.featured) { %>
+                          <span class="badge bg-warning">Featured</span>
+                        <% } %>
+                        <% if (!scholarship.is_published) { %>
+                          <span class="badge bg-secondary">Draft</span>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div class="text-center py-4">
+                <i class="fas fa-graduation-cap fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No scholarships yet.</p>
+                <a href="/admin/scholarships/new" class="btn btn-primary btn-sm">Add Your First Scholarship</a>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Posts -->
+      <div class="col-lg-6 mb-4">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+              <i class="fas fa-edit me-2"></i>Recent Posts
+            </h6>
+            <a href="/admin/posts" class="btn btn-sm btn-outline-success">View All</a>
+          </div>
+          <div class="card-body p-0">
+            <% if (recentPosts && recentPosts.length > 0) { %>
+              <div class="list-group list-group-flush">
+                <% recentPosts.forEach(post => { %>
+                  <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="flex-grow-1">
+                        <h6 class="mb-1">
+                          <a href="/admin/posts/<%= post.id %>/edit" class="text-decoration-none">
+                            <%= post.title %>
+                          </a>
+                        </h6>
+                        <p class="mb-1 text-muted">
+                          <%= post.summary.substring(0, 80) %>...
+                        </p>
+                        <small class="text-muted">
+                          <%= new Date(post.created_at).toLocaleDateString() %>
+                        </small>
+                      </div>
+                      <div class="text-end">
+                        <% if (post.featured) { %>
+                          <span class="badge bg-warning">Featured</span>
+                        <% } %>
+                        <% if (!post.is_published) { %>
+                          <span class="badge bg-secondary">Draft</span>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div class="text-center py-4">
+                <i class="fas fa-edit fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No posts yet.</p>
+                <a href="/admin/posts/new" class="btn btn-success btn-sm">Write Your First Post</a>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity Footer -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="fas fa-chart-line me-2"></i>System Information
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-md-3">
+                <h6 class="text-brand"><%= stats.countries || 0 %></h6>
+                <small class="text-muted">Countries</small>
+              </div>
+              <div class="col-md-3">
+                <h6 class="text-success"><%= stats.featured || 0 %></h6>
+                <small class="text-muted">Featured Items</small>
+              </div>
+              <div class="col-md-3">
+                <h6 class="text-info">
+                  <%= new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
+                </h6>
+                <small class="text-muted">Today's Date</small>
+              </div>
+              <div class="col-md-3">
+                <h6 class="text-warning">
+                  <%= user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1) %>
+                </h6>
+                <small class="text-muted">Logged in as</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Font Awesome -->
+  <script src="https://kit.fontawesome.com/your-kit-id.js" crossorigin="anonymous"></script>
+
+  <!-- Custom Admin JS -->
+  <script src="/js/main.js"></script>
+
+  <script>
+    // Auto-refresh stats every 5 minutes
+    setInterval(() => {
+      window.location.reload();
+    }, 5 * 60 * 1000);
+
+    // Add loading states to buttons
+    document.querySelectorAll('a.btn').forEach(btn => {
+      if (btn.getAttribute('href').startsWith('/admin/') && btn.getAttribute('target') !== '_blank') {
+        btn.addEventListener('click', function() {
+          const original = this.innerHTML;
+          this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+          this.disabled = true;
+          
+          // Restore button state if navigation doesn't happen (e.g., validation error)
+          setTimeout(() => {
+            this.innerHTML = original;
+            this.disabled = false;
+          }, 3000);
+        });
+      }
+    });
+
+    // Show success message if redirected from a successful action
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success')) {
+      const successMessage = decodeURIComponent(urlParams.get('success'));
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+      alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
+      alertDiv.innerHTML = `
+        ${successMessage}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.body.appendChild(alertDiv);
+      
+      // Clean URL
+      history.replaceState({}, document.title, window.location.pathname);
+      
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        if (alertDiv.parentNode) {
+          alertDiv.remove();
+        }
+      }, 5000);
+    }
+  </script>
+</body>
+</html>
