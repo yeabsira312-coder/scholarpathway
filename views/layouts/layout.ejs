@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<%= csrfToken %>">
+  
+  <title><%= title ? title + ' | ' + site.name : site.name %></title>
+  <meta name="description" content="<%= description || 'Discover scholarships and study abroad opportunities worldwide. Find funding for undergraduate, graduate, and doctoral programs.' %>">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="<%= site.url %><%= originalUrl || '' %>">
+  <meta property="og:title" content="<%= title ? title + ' | ' + site.name : site.name %>">
+  <meta property="og:description" content="<%= description || 'Discover scholarships and study abroad opportunities worldwide.' %>">
+  <meta property="og:image" content="<%= site.url %>/images/og-image.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="<%= site.url %><%= originalUrl || '' %>">
+  <meta property="twitter:title" content="<%= title ? title + ' | ' + site.name : site.name %>">
+  <meta property="twitter:description" content="<%= description || 'Discover scholarships and study abroad opportunities worldwide.' %>">
+  <meta property="twitter:image" content="<%= site.url %>/images/twitter-card.png">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="<%= site.url %><%= originalUrl || '' %>">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/main.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+  <!-- Structured Data -->
+  <% if (locals.structuredData) { %>
+    <script type="application/ld+json">
+      <%- JSON.stringify(structuredData) %>
+    </script>
+  <% } %>
+
+  <!-- Google Analytics -->
+  <% if (site.ga) { %>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=<%= site.ga %>"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '<%= site.ga %>');
+    </script>
+  <% } %>
+
+  <!-- AdSense -->
+  <% if (site.adsenseClient) { %>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<%= site.adsenseClient %>"
+            crossorigin="anonymous"></script>
+  <% } %>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="/">ScholarPathway</a>
+      
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/scholarships">Scholarships</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/tips">Tips</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/countries">Countries</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/contact">Contact</a>
+          </li>
+        </ul>
+        
+        <ul class="navbar-nav">
+          <% if (user) { %>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin">Admin</a>
+            </li>
+          <% } %>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    <%- body %>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4 mb-4">
+          <h5>ScholarPathway</h5>
+          <p class="text-muted">Helping students worldwide find scholarship opportunities and achieve their educational dreams.</p>
+          <div class="d-flex gap-3">
+            <a href="#" class="text-muted"><i class="fab fa-facebook"></i></a>
+            <a href="#" class="text-muted"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="text-muted"><i class="fab fa-linkedin"></i></a>
+            <a href="#" class="text-muted"><i class="fab fa-instagram"></i></a>
+          </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-6 mb-4">
+          <h6>Explore</h6>
+          <ul class="list-unstyled">
+            <li><a href="/scholarships">Scholarships</a></li>
+            <li><a href="/tips">Study Tips</a></li>
+            <li><a href="/countries">Countries</a></li>
+            <li><a href="/about">About Us</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-lg-2 col-md-6 mb-4">
+          <h6>Support</h6>
+          <ul class="list-unstyled">
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="/help">Help Center</a></li>
+            <li><a href="/privacy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms of Service</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+          <h6>Stay Updated</h6>
+          <p class="text-muted mb-3">Get the latest scholarship opportunities delivered to your inbox.</p>
+          <form id="newsletter-form" class="d-flex gap-2">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+            <button type="submit" class="btn btn-primary">Subscribe</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Ad Placeholder -->
+      <% if (site.adsenseClient) { %>
+        <div class="row my-4">
+          <div class="col-12">
+            <!-- Ad unit code here -->
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="<%= site.adsenseClient %>"
+                 data-ad-slot="1234567890"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="ad-placeholder">
+          <small>Advertisement</small>
+        </div>
+      <% } %>
+
+      <hr>
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <p class="text-muted mb-0">&copy; <%= new Date().getFullYear() %> ScholarPathway. Built with ❤️ for students worldwide.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <p class="text-muted mb-0">Founded by Yeab</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Font Awesome -->
+  <script src="https://kit.fontawesome.com/your-kit-id.js" crossorigin="anonymous"></script>
+  
+  <!-- Custom JS -->
+  <script src="/js/main.js"></script>
+</body>
+</html>
