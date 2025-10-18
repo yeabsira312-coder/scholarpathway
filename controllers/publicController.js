@@ -5,7 +5,18 @@ const { getPagination } = require('../utils/pagination');
 const dayjs = require('dayjs');
 const { sendEmail } = require('../utils/email');
 const { countriesList } = require('../utils/countries');
-const { scholarshipsDatabase, studyTipsDatabase } = require('../data/scholarships-database');
+// Load database with error handling
+let scholarshipsDatabase, studyTipsDatabase;
+try {
+  const dbData = require('../data/scholarships-database');
+  scholarshipsDatabase = dbData.scholarshipsDatabase || [];
+  studyTipsDatabase = dbData.studyTipsDatabase || [];
+  console.log(`✅ Loaded ${scholarshipsDatabase.length} scholarships and ${studyTipsDatabase.length} tips`);
+} catch (error) {
+  console.error('⚠️  Database loading error:', error.message);
+  scholarshipsDatabase = [];
+  studyTipsDatabase = [];
+}
 
 // Use comprehensive scholarship database as fallback
 const sampleScholarships = scholarshipsDatabase;

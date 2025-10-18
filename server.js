@@ -72,6 +72,15 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // routes
 app.use('/', publicRoutes);
 app.use('/admin', adminRoutes);
