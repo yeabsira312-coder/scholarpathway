@@ -1,41 +1,41 @@
-// routes/public.js (ESM)
-import express from 'express';
-import { createClient } from '@supabase/supabase-js';
+const express = require('express');
+const rateLimit = require('express-rate-limit');
+const { body } = require('express-validator');
+const publicController = require('../controllers/publicController');
 
 const router = express.Router();
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-router.get('/', async (req, res) => {
-  try {
-    const { data: scholarships } = await supabase
-      .from('scholarships')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    res.render('pages/home', { title: 'Home', scholarships });
-  } catch (error) {
-    console.error(error);
-    res.status(500).render('pages/500', { title: 'Server Error' });
-  }
+// Rate limiting for forms
+const formRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 requests per window
+  message: { error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false
 });
 
-router.get('/scholarships', async (req, res) => {
-  try {
-    const { data: scholarships } = await supabase
-      .from('scholarships')
-      .select('*')
-      .order('created_at', { ascending: false });
+// Public pages
+router.get('/', publicController.home);
+router.get('/scholarships', publicController.scholarships);
+router.get('/scholarships/:slug', publicController.scholarshipDetail);
+router.get('/tips', publicController.tips);
+router.get('/tips/:slug', publicController.tipDetail);
+router.get('/countries', publicController.countries);
+router.get('/countries/:code', publicController.countriesFilter);
+router.get('/about', publicController.about);
+router.get('/contact', publicController.contact);
 
-    res.render('pages/scholarships', { title: 'Scholarships', scholarships });
-  } catch (error) {
-    console.error(error);
-    res.status(500).render('pages/500', { title: 'Server Error' });
-  }
-});
+// Form submissions
+router.post('/contact', formRateLimit, [
+  body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters'),
+  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+  body('message').trim().isLength({ min: 10, max: 2000 }).withMessage('Message must be 10-2000 characters')
+], publicController.contactSubmit);
+router.post('/subscribe', formRateLimit, publicController.subscribe);
 
-router.get('/tips', (req, res) => {
-  res.render('pages/tips', { title: 'Study Tips' });
-});
+// SEO and feeds
+router.get('/sitemap.xml', publicController.sitemap);
+router.get('/robots.txt', publicController.robots);
+router.get('/feed.xml', publicController.feed);
 
-export default router;
+module.exports = router;

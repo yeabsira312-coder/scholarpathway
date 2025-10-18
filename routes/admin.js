@@ -1,55 +1,43 @@
-// routes/admin.js (ESM)
-import express from 'express';
-import { createClient } from '@supabase/supabase-js';
-import bcrypt from 'bcryptjs';
+const express = require('express');
+const { body } = require('express-validator');
+const { requireAuth, redirectIfAuth } = require('../middleware/auth');
+const adminController = require('../controllers/adminController');
 
 const router = express.Router();
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// requireAuth middleware
-function requireAuth(req, res, next) {
-  if (!req.session || !req.session.user) return res.redirect('/admin/login');
-  next();
-}
+// Authentication routes (no auth required)
+router.get('/login', redirectIfAuth, adminController.loginPage);
+router.post('/login', redirectIfAuth, [
+  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], adminController.login);
+router.post('/logout', adminController.logout);
 
-router.get('/login', (req, res) => {
-  res.render('pages/admin/login', { title: 'Admin Login' });
-});
+// All routes below require authentication
+router.use(requireAuth);
 
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const { data: user, error } = await supabase
-      .from('admins')
-      .select('*')
-      .eq('email', email)
-      .single();
+// Dashboard
+router.get('/', adminController.dashboard);
 
-    if (error || !user) {
-      return res.render('pages/admin/login', { title: 'Admin Login', error: 'Invalid email or password' });
-    }
+// Scholarships management
+router.get('/scholarships', adminController.scholarshipsList);
+router.get('/scholarships/new', adminController.scholarshipsNew);
+router.post('/scholarships', adminController.scholarshipsCreate);
+router.get('/scholarships/:id/edit', adminController.scholarshipsEdit);
+router.post('/scholarships/:id/update', adminController.scholarshipsUpdate);
+router.post('/scholarships/:id/delete', adminController.scholarshipsDelete);
 
-    // if password stored hashed:
-    const passwordMatches = user.password && bcrypt.compareSync(password, user.password);
-    if (!(user.password ? passwordMatches : password === user.password)) {
-      return res.render('pages/admin/login', { title: 'Admin Login', error: 'Invalid email or password' });
-    }
+// Posts management
+router.get('/posts', adminController.postsList);
+router.get('/posts/new', adminController.postsNew);
+router.post('/posts', adminController.postsCreate);
+router.get('/posts/:id/edit', adminController.postsEdit);
+router.post('/posts/:id/update', adminController.postsUpdate);
+router.post('/posts/:id/delete', adminController.postsDelete);
 
-    req.session.user = { id: user.id, email: user.email };
-    res.redirect('/admin/dashboard');
-  } catch (err) {
-    console.error(err);
-    res.status(500).render('pages/500', { title: 'Server Error' });
-  }
-});
+// Countries management
+router.get('/countries', adminController.countriesList);
+router.post('/countries', adminController.countriesUpsert);
+router.post('/countries/:code/delete', adminController.countriesDelete);
 
-router.get('/dashboard', requireAuth, async (req, res) => {
-  res.render('pages/admin/dashboard', { title: 'Dashboard', user: req.session.user });
-});
-
-router.post('/logout', (req, res) => {
-  req.session = null;
-  res.redirect('/admin/login');
-});
-
-export default router;
+module.exports = router;

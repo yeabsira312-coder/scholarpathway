@@ -42,7 +42,7 @@ exports.home = async (req, res) => {
     res.render('pages/home', {
       title: 'Find Your Perfect Scholarship - ScholarPathway',
       description: 'Discover scholarships and study abroad opportunities worldwide. Search thousands of scholarships for students.',
-      scholarships: scholarships || [],
+      featuredScholarships: scholarships || [],
       countries: countriesWithCounts || [],
       currentUrl: req.originalUrl
     });

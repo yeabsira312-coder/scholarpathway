@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "ScholarPathway - Scholarships and Study Abroad blog",
   "main": "server.js",
-  "type": "module",
-  "engines": {
-    "node": "18.x"
+  "type": "commonjs",
+  "engines": { 
+    "node": ">=20" 
   },
   "scripts": {
     "start": "node server.js",

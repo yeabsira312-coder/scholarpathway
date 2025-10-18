@@ -1,23 +1,17 @@
-// server.js (ESM + express-ejs-layouts)
-import { createClient } from '@supabase/supabase-js';
-import express from 'express';
-import path from 'path';
-import helmet from 'helmet';
-import compression from 'compression';
-import morgan from 'morgan';
-import cookieSession from 'cookie-session';
-import csrf from 'csurf';
-import methodOverride from 'method-override';
-import expressLayouts from 'express-ejs-layouts';
+const express = require('express');
+const path = require('path');
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
+const cookieSession = require('cookie-session');
+const csrf = require('csurf');
+const methodOverride = require('method-override');
+const expressLayouts = require('express-ejs-layouts');
 
-// routes (ESM)
-import publicRoutes from './routes/public.js';
-import adminRoutes from './routes/admin.js';
+const publicRoutes = require('./routes/public');
+const adminRoutes = require('./routes/admin');
 
-const __dirname = path.resolve();
 const app = express();
-
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
