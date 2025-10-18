@@ -55,6 +55,10 @@ app.use((req, res, next) => {
     ga: process.env.GA_MEASUREMENT_ID || '',
     adsenseClient: process.env.ADSENSE_CLIENT || ''
   };
+  // Safe defaults for templates
+  res.locals.title = null;
+  res.locals.description = '';
+  res.locals.structuredData = null;
   res.locals.user = req.session && req.session.user;
   res.locals.originalUrl = req.originalUrl;
   next();
@@ -73,7 +77,7 @@ app.use((req, res) => {
 // 500
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).render('pages/500', { title: 'Server Error' });
+  res.status(500).render('pages/500', { title: 'Server Error', description: 'Something went wrong' });
 });
 
 const port = process.env.PORT || 3000;
