@@ -1,43 +1,51 @@
-const express = require('express');
-const { body } = require('express-validator');
-const { requireAuth, redirectIfAuth } = require('../middleware/auth');
-const adminController = require('../controllers/adminController');
+import express from "express";
+import { createClient } from "@supabase/supabase-js";
 
 const router = express.Router();
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// Authentication routes (no auth required)
-router.get('/login', redirectIfAuth, adminController.loginPage);
-router.post('/login', redirectIfAuth, [
-  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
-], adminController.login);
-router.post('/logout', adminController.logout);
+// Middleware to check if user is logged in
+function requireAuth(req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.redirect("/admin/login");
+  }
+  next();
+}
 
-// All routes below require authentication
-router.use(requireAuth);
+// Admin login page
+router.get("/login", (req, res) => {
+  res.render("pages/admin/login", { title: "Admin Login" });
+});
 
-// Dashboard
-router.get('/', adminController.dashboard);
+// Handle admin login form
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const { data: user, error } = await supabase
+    .from("admins")
+    .select("*")
+    .eq("email", email)
+    .single();
 
-// Scholarships management
-router.get('/scholarships', adminController.scholarshipsList);
-router.get('/scholarships/new', adminController.scholarshipsNew);
-router.post('/scholarships', adminController.scholarshipsCreate);
-router.get('/scholarships/:id/edit', adminController.scholarshipsEdit);
-router.post('/scholarships/:id/update', adminController.scholarshipsUpdate);
-router.post('/scholarships/:id/delete', adminController.scholarshipsDelete);
+  if (error || !user || user.password !== password) {
+    return res.render("pages/admin/login", {
+      title: "Admin Login",
+      error: "Invalid email or password",
+    });
+  }
 
-// Posts management
-router.get('/posts', adminController.postsList);
-router.get('/posts/new', adminController.postsNew);
-router.post('/posts', adminController.postsCreate);
-router.get('/posts/:id/edit', adminController.postsEdit);
-router.post('/posts/:id/update', adminController.postsUpdate);
-router.post('/posts/:id/delete', adminController.postsDelete);
+  req.session.user = { id: user.id, email: user.email };
+  res.redirect("/admin/dashboard");
+});
 
-// Countries management
-router.get('/countries', adminController.countriesList);
-router.post('/countries', adminController.countriesUpsert);
-router.post('/countries/:code/delete', adminController.countriesDelete);
+// Admin dashboard (protected)
+router.get("/dashboard", requireAuth, (req, res) => {
+  res.render("pages/admin/dashboard", { title: "Dashboard", user: req.session.user });
+});
 
-module.exports = router;
+// Logout
+router.post("/logout", (req, res) => {
+  req.session = null;
+  res.redirect("/admin/login");
+});
+
+export default router;
