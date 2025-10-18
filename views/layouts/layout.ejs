@@ -195,5 +195,86 @@
   
   <!-- Custom JS -->
   <script src="/js/main.js"></script>
+  
+  <script>
+  // Footer Newsletter Subscription
+  document.addEventListener('DOMContentLoaded', function() {
+    const footerForm = document.getElementById('newsletter-form');
+    
+    if (footerForm) {
+      footerForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = this.querySelector('input[name="email"]').value.trim();
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        
+        if (!email || !email.includes('@')) {
+          showToast('Please enter a valid email address', 'error');
+          return;
+        }
+        
+        submitBtn.textContent = 'Subscribing...';
+        submitBtn.disabled = true;
+        
+        try {
+          const formData = new FormData(this);
+          formData.append('source', 'footer');
+          
+          const response = await fetch('/subscribe', {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+          });
+          
+          const result = await response.json();
+          
+          if (response.ok && result.success) {
+            showToast(result.success, 'success');
+            this.reset();
+          } else {
+            showToast(result.error || 'Subscription failed. Please try again.', 'error');
+          }
+        } catch (error) {
+          console.error('Newsletter subscription error:', error);
+          showToast('Network error. Please try again.', 'error');
+        } finally {
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        }
+      });
+    }
+  });
+  
+  // Simple toast notification function
+  function showToast(message, type = 'info') {
+    const existingToast = document.querySelector('.custom-toast');
+    if (existingToast) {
+      existingToast.remove();
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `custom-toast alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+    toast.innerHTML = `
+      <div class="d-flex align-items-center">
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+        <span>${message}</span>
+        <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
+      </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.remove();
+      }
+    }, 5000);
+  }
+  </script>
 </body>
 </html>

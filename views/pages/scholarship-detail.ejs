@@ -1,23 +1,223 @@
-<section class="container py-5">
-  <h1 class="mb-3"><%= scholarship.title %></h1>
-  <p class="text-muted"><%= scholarship.summary %></p>
+<!-- Breadcrumb -->
+<nav class="bg-light py-3">
+  <div class="container">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item"><a href="/scholarships">Scholarships</a></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= scholarship.title %></li>
+    </ol>
+  </div>
+</nav>
 
-  <div class="row mt-4">
-    <div class="col-md-8">
-      <h3 class="h6">Overview</h3>
-      <p>Country: <strong><%= scholarship.country_code %></strong></p>
-      <% if (scholarship.degree_levels && scholarship.degree_levels.length) { %>
-        <p>Degrees: <%= scholarship.degree_levels.join(', ') %></p>
-      <% } %>
-      <% if (scholarship.deadline) { %>
-        <p>Deadline: <%= new Date(scholarship.deadline).toLocaleDateString('en-US') %></p>
-      <% } %>
-      <% if (scholarship.tags && scholarship.tags.length) { %>
-        <p>Tags: <%= scholarship.tags.join(', ') %></p>
+<!-- Main Content -->
+<section class="container py-5">
+  <div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+      <!-- Header -->
+      <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h1 class="h2 mb-3"><%= scholarship.title %></h1>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="badge bg-primary"><%= scholarship.countries?.name || scholarship.country_code %></span>
+              <% if (scholarship.featured) { %>
+                <span class="badge bg-warning"><i class="fas fa-star me-1"></i>Featured</span>
+              <% } %>
+              <% if (scholarship.degree_levels && scholarship.degree_levels.length > 0) { %>
+                <% scholarship.degree_levels.forEach(level => { %>
+                  <span class="badge bg-info"><%= level %></span>
+                <% }) %>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        
+        <p class="lead text-muted"><%= scholarship.summary %></p>
+      </div>
+
+      <!-- Quick Facts -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="h5 card-title mb-3">Quick Facts</h3>
+          <div class="row">
+            <div class="col-sm-6 mb-3">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                <div>
+                  <small class="text-muted">Country</small>
+                  <div><%= scholarship.countries?.name || scholarship.country_code %></div>
+                </div>
+              </div>
+            </div>
+            
+            <% if (scholarship.amount) { %>
+            <div class="col-sm-6 mb-3">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-dollar-sign text-success me-2"></i>
+                <div>
+                  <small class="text-muted">Amount</small>
+                  <div><%= scholarship.amount %></div>
+                </div>
+              </div>
+            </div>
+            <% } %>
+            
+            <% if (scholarship.deadline) { %>
+            <div class="col-sm-6 mb-3">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-calendar-alt text-danger me-2"></i>
+                <div>
+                  <small class="text-muted">Deadline</small>
+                  <div>
+                    <%= new Date(scholarship.deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
+                    <% 
+                      const today = new Date();
+                      const deadline = new Date(scholarship.deadline);
+                      const daysLeft = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+                    %>
+                    <% if (daysLeft > 0 && daysLeft <= 30) { %>
+                      <small class="text-warning">(<%= daysLeft %> days left)</small>
+                    <% } else if (daysLeft <= 0) { %>
+                      <small class="text-danger">(Expired)</small>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <% } %>
+            
+            <div class="col-sm-6 mb-3">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-graduation-cap text-info me-2"></i>
+                <div>
+                  <small class="text-muted">Eligibility</small>
+                  <div>
+                    <% if (scholarship.degree_levels && scholarship.degree_levels.length > 0) { %>
+                      <%= scholarship.degree_levels.join(', ') %>
+                    <% } else { %>
+                      All levels
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="h5 card-title">About This Scholarship</h3>
+          <% if (scholarship.content) { %>
+            <div class="scholarship-content">
+              <%- scholarship.content %>
+            </div>
+          <% } else { %>
+            <p><%= scholarship.summary %></p>
+            <p>This scholarship provides an excellent opportunity for students to pursue their academic goals with financial support. The program is designed to attract talented individuals who demonstrate academic excellence and potential for future success.</p>
+            
+            <h4 class="h6 mt-4">Key Benefits:</h4>
+            <ul>
+              <li>Financial support for tuition and living expenses</li>
+              <li>Access to world-class educational institutions</li>
+              <li>Networking opportunities with fellow scholars</li>
+              <li>Career development and mentorship programs</li>
+            </ul>
+            
+            <h4 class="h6 mt-4">Application Requirements:</h4>
+            <ul>
+              <li>Academic transcripts and certificates</li>
+              <li>Letters of recommendation</li>
+              <li>Personal statement or essay</li>
+              <li>Proof of English proficiency (if applicable)</li>
+            </ul>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <% if (scholarship.tags && scholarship.tags.length > 0) { %>
+        <div class="mb-4">
+          <h4 class="h6 mb-3">Tags</h4>
+          <% scholarship.tags.forEach(tag => { %>
+            <span class="badge bg-light text-dark me-2 mb-1"><%= tag %></span>
+          <% }) %>
+        </div>
       <% } %>
     </div>
-    <div class="col-md-4">
-      <a href="#" class="btn btn-primary w-100">Apply Now</a>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Apply Now Card -->
+      <div class="card mb-4 border-primary">
+        <div class="card-body text-center">
+          <h3 class="h5 text-primary mb-3">Ready to Apply?</h3>
+          <p class="text-muted mb-4">Don't miss this opportunity! Applications are reviewed on a rolling basis.</p>
+          
+          <% if (scholarship.deadline) { %>
+            <% 
+              const today = new Date();
+              const deadline = new Date(scholarship.deadline);
+              const daysLeft = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+            %>
+            <% if (daysLeft > 0) { %>
+              <div class="mb-3">
+                <div class="h4 text-primary mb-0"><%= daysLeft %></div>
+                <small class="text-muted">days remaining</small>
+              </div>
+            <% } %>
+          <% } %>
+          
+          <% if (scholarship.official_link) { %>
+            <a href="<%= scholarship.official_link %>" class="btn btn-primary btn-lg w-100 mb-2" target="_blank" rel="noopener">
+              <i class="fas fa-external-link-alt me-2"></i>Apply Now
+            </a>
+          <% } else { %>
+            <button class="btn btn-primary btn-lg w-100 mb-2" onclick="alert('Application link coming soon!')">
+              <i class="fas fa-external-link-alt me-2"></i>Apply Now
+            </button>
+          <% } %>
+          
+          <small class="text-muted">You'll be redirected to the official application portal</small>
+        </div>
+      </div>
+
+      <!-- Similar Scholarships -->
+      <% if (related && related.length > 0) { %>
+        <div class="card">
+          <div class="card-body">
+            <h3 class="h6 card-title">Related Scholarships</h3>
+            <% related.forEach(relatedScholarship => { %>
+              <div class="mb-3 pb-3 border-bottom">
+                <h4 class="h6 mb-2">
+                  <a href="/scholarships/<%= relatedScholarship.slug %>" class="text-decoration-none">
+                    <%= relatedScholarship.title %>
+                  </a>
+                </h4>
+                <p class="text-muted small mb-2"><%= relatedScholarship.summary.substring(0, 100) %>...</p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="badge bg-light text-dark"><%= relatedScholarship.countries?.name || relatedScholarship.country_code %></span>
+                  <a href="/scholarships/<%= relatedScholarship.slug %>" class="btn btn-sm btn-outline-primary">View</a>
+                </div>
+              </div>
+            <% }) %>
+            <a href="/scholarships?country=<%= scholarship.country_code %>" class="btn btn-outline-primary btn-sm w-100">
+              View All <%= scholarship.countries?.name || scholarship.country_code %> Scholarships
+            </a>
+          </div>
+        </div>
+      <% } %>
     </div>
+  </div>
+</section>
+
+<!-- Back to Scholarships CTA -->
+<section class="py-4 bg-light">
+  <div class="container text-center">
+    <a href="/scholarships" class="btn btn-outline-primary">
+      <i class="fas fa-arrow-left me-2"></i>Browse More Scholarships
+    </a>
   </div>
 </section>
