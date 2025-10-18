@@ -13,13 +13,18 @@ const sampleScholarships = scholarshipsDatabase;
 // Use comprehensive study tips database as fallback
 const samplePosts = studyTipsDatabase;
 
-const sampleCountries = countriesList.slice(0, 15).map((country, index) => ({
-  code: country.code,
-  name: country.name,
-  scholarships: Array(Math.floor(Math.random() * 5) + 1).fill(null).map(() => ({ id: Math.random() })),
-  scholarship_count: Math.floor(Math.random() * 20) + 5,
-  flag: getCountryFlag(country.code)
-}));
+// Generate countries with real scholarship counts from mega database
+const sampleCountries = countriesList.slice(0, 15).map((country) => {
+  const scholarshipsForCountry = sampleScholarships.filter(s => s.country_code === country.code);
+  return {
+    code: country.code,
+    name: country.name,
+    scholarships: scholarshipsForCountry,
+    scholarship_count: scholarshipsForCountry.length || 0,
+    count: scholarshipsForCountry.length || 0,
+    flag: getCountryFlag(country.code)
+  };
+});
 
 // Helper function to get country flag emoji
 function getCountryFlag(countryCode) {
@@ -558,12 +563,16 @@ exports.countries = async (req, res) => {
       }
     }
 
-    // Ensure all countries have proper counts and flags
-    countriesWithCounts = countriesWithCounts.map(country => ({
-      ...country,
-      count: country.count || country.scholarship_count || Math.floor(Math.random() * 15) + 5,
-      flag: country.flag || getCountryFlag(country.code)
-    }));
+    // Ensure all countries have proper counts and flags from mega database
+    countriesWithCounts = countriesWithCounts.map(country => {
+      const scholarshipsForCountry = sampleScholarships.filter(s => s.country_code === country.code);
+      return {
+        ...country,
+        count: scholarshipsForCountry.length || 0,
+        scholarship_count: scholarshipsForCountry.length || 0,
+        flag: country.flag || getCountryFlag(country.code)
+      };
+    });
 
     res.render('pages/countries', {
       title: 'Study Destinations - ScholarPathway',
@@ -573,13 +582,16 @@ exports.countries = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Countries page error:', error);
-    // Ultimate fallback with sample data
-    const fallbackCountries = countriesList.slice(0, 12).map(c => ({ 
-      code: c.code, 
-      name: c.name, 
-      count: Math.floor(Math.random() * 15) + 5, 
-      flag: getCountryFlag(c.code) 
-    }));
+    // Ultimate fallback with sample data using real counts
+    const fallbackCountries = countriesList.slice(0, 12).map(c => {
+      const scholarshipsForCountry = sampleScholarships.filter(s => s.country_code === c.code);
+      return {
+        code: c.code,
+        name: c.name,
+        count: scholarshipsForCountry.length || 0,
+        flag: getCountryFlag(c.code)
+      };
+    });
     
     res.render('pages/countries', {
       title: 'Study Destinations - ScholarPathway',
@@ -598,54 +610,83 @@ exports.countriesFilter = async (req, res) => {
     const paginationData = getPagination(page, 12);
     const { offset } = paginationData;
     const limit = paginationData.pageSize;
+    
+    // Get country info from static list
+    const fromList = countriesList.find(c => c.code.toUpperCase() === code.toUpperCase());
+    const fallbackCountry = fromList || { code: code.toUpperCase(), name: code.toUpperCase() };
+    
+    // Filter scholarships from mega database for this country
+    const countryScholarships = sampleScholarships.filter(s => s.country_code === code.toUpperCase());
+    const totalCount = countryScholarships.length;
+    const totalPages = Math.ceil(totalCount / limit);
+    const paginatedScholarships = countryScholarships.slice(offset, offset + limit);
+    
+    let country = fallbackCountry;
+    let scholarships = paginatedScholarships;
 
-    // Get country info
-    const { data: country, error: countryError } = await supabase
-      .from('countries')
-      .select('code, name')
-      .eq('code', code.toUpperCase())
-      .single();
+    // Try to fetch real data if Supabase is configured
+    if (isConfigured && supabase) {
+      try {
+        // Get country info
+        const { data: dbCountry, error: countryError } = await supabase
+          .from('countries')
+          .select('code, name')
+          .eq('code', code.toUpperCase())
+          .single();
 
-    if (countryError || !country) {
-      // Fallback to static list so page still works
-      const fromList = countriesList.find(c => c.code.toUpperCase() === code.toUpperCase());
-      const fallbackCountry = fromList || { code: code.toUpperCase(), name: code.toUpperCase() };
-      return res.render('pages/country-scholarships', {
-        title: `${fallbackCountry.name} Scholarships - ScholarPathway`,
-        description: `Find scholarships and study opportunities in ${fallbackCountry.name}.`,
-        country: { code: fallbackCountry.code, name: fallbackCountry.name, flag: getCountryFlag(fallbackCountry.code) },
-        scholarships: [],
-        pagination: { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false },
-        currentUrl: req.originalUrl
-      });
+        if (dbCountry && !countryError) {
+          country = dbCountry;
+        }
+
+        // Get scholarships for this country
+        const [scholarshipsResult, countResult] = await Promise.all([
+          supabase
+            .from('scholarships')
+            .select(`
+              id, slug, title, country_code, degree_levels, deadline, summary, tags, featured, amount,
+              countries(name)
+            `)
+            .eq('country_code', code.toUpperCase())
+            .eq('is_published', true)
+            .order('featured', { ascending: false })
+            .order('created_at', { ascending: false })
+            .range(offset, offset + limit - 1),
+          supabase
+            .from('scholarships')
+            .select('*', { count: 'exact', head: true })
+            .eq('country_code', code.toUpperCase())
+            .eq('is_published', true)
+        ]);
+
+        if (scholarshipsResult.data && !scholarshipsResult.error && !countResult.error) {
+          scholarships = scholarshipsResult.data;
+          const dbTotalCount = countResult.count || 0;
+          const dbTotalPages = Math.ceil(dbTotalCount / limit);
+          
+          return res.render('pages/country-scholarships', {
+            title: `${country.name} Scholarships - ScholarPathway`,
+            description: `Find scholarships and study opportunities in ${country.name}. Comprehensive list of available funding options.`,
+            country: {
+              ...country,
+              flag: getCountryFlag(country.code)
+            },
+            scholarships: scholarships,
+            pagination: {
+              currentPage: parseInt(page),
+              totalPages: dbTotalPages,
+              totalCount: dbTotalCount,
+              hasNext: parseInt(page) < dbTotalPages,
+              hasPrev: parseInt(page) > 1
+            },
+            currentUrl: req.originalUrl
+          });
+        }
+      } catch (dbError) {
+        console.warn('⚠️  Country filter database query failed, using fallback data:', dbError.message);
+      }
     }
 
-    // Get scholarships for this country
-    const [scholarshipsResult, countResult] = await Promise.all([
-      supabase
-        .from('scholarships')
-        .select(`
-          id, slug, title, country_code, degree_levels, deadline, summary, tags, featured,
-          countries(name)
-        `)
-        .eq('country_code', code.toUpperCase())
-        .eq('is_published', true)
-        .order('featured', { ascending: false })
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1),
-      supabase
-        .from('scholarships')
-        .select('*', { count: 'exact', head: true })
-        .eq('country_code', code.toUpperCase())
-        .eq('is_published', true)
-    ]);
-
-    if (scholarshipsResult.error) throw scholarshipsResult.error;
-    if (countResult.error) throw countResult.error;
-
-    const totalCount = countResult.count || 0;
-    const totalPages = Math.ceil(totalCount / limit);
-
+    // Fallback to mega database scholarships
     res.render('pages/country-scholarships', {
       title: `${country.name} Scholarships - ScholarPathway`,
       description: `Find scholarships and study opportunities in ${country.name}. Comprehensive list of available funding options.`,
@@ -653,7 +694,7 @@ exports.countriesFilter = async (req, res) => {
         ...country,
         flag: getCountryFlag(country.code)
       },
-      scholarships: scholarshipsResult.data || [],
+      scholarships: paginatedScholarships,
       pagination: {
         currentPage: parseInt(page),
         totalPages,
@@ -664,8 +705,24 @@ exports.countriesFilter = async (req, res) => {
       currentUrl: req.originalUrl
     });
   } catch (error) {
-    console.error('Country filter error:', error);
-    res.status(500).render('pages/500', { title: 'Server Error' });
+    console.error('❌ Country filter error:', error);
+    // Ultimate fallback to prevent 500 errors
+    const { code } = req.params;
+    const fromList = countriesList.find(c => c.code.toUpperCase() === code.toUpperCase());
+    const fallbackCountry = fromList || { code: code.toUpperCase(), name: code.toUpperCase() };
+    
+    res.render('pages/country-scholarships', {
+      title: `${fallbackCountry.name} Scholarships - ScholarPathway`,
+      description: `Find scholarships and study opportunities in ${fallbackCountry.name}.`,
+      country: { 
+        code: fallbackCountry.code, 
+        name: fallbackCountry.name, 
+        flag: getCountryFlag(fallbackCountry.code) 
+      },
+      scholarships: sampleScholarships.filter(s => s.country_code === code.toUpperCase()).slice(0, 6),
+      pagination: { currentPage: 1, totalPages: 1, totalCount: 6, hasNext: false, hasPrev: false },
+      currentUrl: req.originalUrl
+    });
   }
 };
 
