@@ -546,7 +546,7 @@ const scholarshipsDatabase = [
     created_at: new Date().toISOString(),
     countries: { name: 'Japan' },
     official_link: 'https://peak.c.u-tokyo.ac.jp/'
-  }
+  },
 
   // Continue adding more countries and scholarships...
   // Adding 470+ more scholarships for truly global coverage
