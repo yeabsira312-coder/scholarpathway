@@ -56,6 +56,7 @@ app.use((req, res, next) => {
     adsenseClient: process.env.ADSENSE_CLIENT || ''
   };
   res.locals.user = req.session && req.session.user;
+  res.locals.originalUrl = req.originalUrl;
   next();
 });
 
