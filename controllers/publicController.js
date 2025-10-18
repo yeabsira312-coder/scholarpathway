@@ -399,8 +399,9 @@ exports.tips = async (req, res) => {
     const { offset } = paginationData;
     const limit = paginationData.pageSize;
     
-    let posts = [...samplePosts];
+    let posts = [...samplePosts]; // Start with our comprehensive study tips
     let totalCount = samplePosts.length;
+    let usedDatabase = false;
 
     // Try to fetch real data if Supabase is configured
     if (isConfigured && supabase) {
@@ -419,22 +420,25 @@ exports.tips = async (req, res) => {
             .eq('is_published', true)
         ]);
 
-        if (postsResult.data && postsResult.data.length >= 0) {
+        if (postsResult.data && postsResult.data.length > 0) {
           posts = postsResult.data;
           totalCount = countResult.count || 0;
+          usedDatabase = true;
         }
       } catch (dbError) {
         console.warn('⚠️  Tips database query failed, using fallback data:', dbError.message);
       }
     }
     
-    // Apply pagination to sample data if using fallback
-    if (!isConfigured || !supabase || posts === samplePosts) {
+    // If we didn't use database or database was empty, use our comprehensive tips
+    if (!usedDatabase) {
       posts = samplePosts.slice(offset, offset + limit);
       totalCount = samplePosts.length;
     }
 
     const totalPages = Math.ceil(totalCount / limit);
+
+    console.log(`✅ Tips page rendering with ${posts.length} posts (total: ${totalCount})`);
 
     res.render('pages/tips', {
       title: 'Study Tips & Guides - ScholarPathway',
@@ -451,15 +455,27 @@ exports.tips = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Tips page error:', error);
-    // Ultimate fallback with sample data
+    // Ultimate fallback - ensure we ALWAYS show tips
+    const fallbackPosts = samplePosts.length > 0 ? samplePosts.slice(0, 8) : [
+      {
+        id: 1,
+        slug: 'getting-started-scholarships',
+        title: 'Getting Started with Scholarships',
+        summary: 'Your complete guide to finding and applying for scholarships.',
+        tags: ['Scholarships', 'Getting Started'],
+        featured: true,
+        created_at: new Date().toISOString()
+      }
+    ];
+    
     res.render('pages/tips', {
       title: 'Study Tips & Guides - ScholarPathway',
       description: 'Get expert tips and guides for studying abroad, scholarship applications, and academic success.',
-      posts: samplePosts.slice(0, 6),
+      posts: fallbackPosts,
       pagination: {
         currentPage: 1,
         totalPages: 1,
-        totalCount: 6,
+        totalCount: fallbackPosts.length,
         hasNext: false,
         hasPrev: false
       },

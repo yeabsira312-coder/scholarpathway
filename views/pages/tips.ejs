@@ -96,6 +96,13 @@
     </div>
   <% } %>
 
+  <!-- Debug Info (remove in production) -->
+  <div class="row mb-2">
+    <div class="col-12">
+      <small class="text-muted">Debug: Found <%= posts ? posts.length : 0 %> posts</small>
+    </div>
+  </div>
+  
   <!-- Main Content Grid -->
   <div class="row">
     <div class="col-lg-8">
@@ -190,7 +197,7 @@
           <h5 class="card-title">Newsletter</h5>
           <p class="text-muted small">Get the latest tips delivered to your inbox</p>
           <form id="newsletter-form" class="newsletter-form">
-            <input type="hidden" name="_token" value="<%= csrfToken %>">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
             <input type="hidden" name="source" value="tips-page">
             <div class="input-group">
               <input type="email" class="form-control" placeholder="Your email" name="email" required>
@@ -375,8 +382,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   filterButtons.forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Filter button clicked:', this.textContent);
       const category = this.getAttribute('data-filter');
+      console.log('Filtering by category:', category);
       filterByCategory(category);
       updateActiveFilter(this);
       
