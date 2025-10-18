@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "ScholarPathway - Scholarships and Study Abroad blog",
   "main": "server.js",
-  "type": "commonjs",
+  "type": "module",
   "engines": { 
     "node": ">=18" 
   },

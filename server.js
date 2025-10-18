@@ -1,9 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
+// Supabase setup
+const { createClient } = require('@supabase/supabase-js');
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
-
+// Core modules
 const express = require('express');
 const path = require('path');
 const helmet = require('helmet');
@@ -13,6 +14,7 @@ const cookieSession = require('cookie-session');
 const csrf = require('csurf');
 const methodOverride = require('method-override');
 
+// Routes
 const publicRoutes = require('./routes/public');
 const adminRoutes = require('./routes/admin');
 
@@ -21,10 +23,12 @@ app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+// Body parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride('_method'));
 
+// Security & performance
 app.use(compression());
 app.use(helmet({
   contentSecurityPolicy: {
@@ -40,8 +44,10 @@ app.use(helmet({
     }
   }
 }));
+
 app.use(morgan('combined'));
 
+// Session & CSRF
 app.use(cookieSession({
   name: 'sp.sid',
   keys: [process.env.SESSION_SECRET || 'dev-secret-change-in-production'],
@@ -65,8 +71,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// Static files
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 
+// Routes
 app.use('/', publicRoutes);
 app.use('/admin', adminRoutes);
 
@@ -81,5 +89,6 @@ app.use((err, req, res, next) => {
   res.status(500).render('pages/500', { title: 'Server Error' });
 });
 
+// Start server
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`ScholarPathway listening on ${port}`));
