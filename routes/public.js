@@ -31,7 +31,9 @@ router.post('/contact', formRateLimit, [
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
   body('message').trim().isLength({ min: 10, max: 2000 }).withMessage('Message must be 10-2000 characters')
 ], publicController.contactSubmit);
-router.post('/subscribe', formRateLimit, publicController.subscribe);
+router.post('/subscribe', formRateLimit, [
+  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email address')
+], publicController.subscribe);
 
 // SEO and feeds
 router.get('/sitemap.xml', publicController.sitemap);
