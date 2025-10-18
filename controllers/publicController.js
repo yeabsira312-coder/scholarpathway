@@ -4,6 +4,7 @@ const { clean } = require('../utils/sanitize');
 const { getPagination } = require('../utils/pagination');
 const dayjs = require('dayjs');
 const { sendEmail } = require('../utils/email');
+const { countriesList } = require('../utils/countries');
 
 // Home page
 exports.home = async (req, res) => {
@@ -51,12 +52,67 @@ exports.home = async (req, res) => {
 
     if (postsError) console.error('Posts error:', postsError);
 
+    const sampleScholarships = [
+      {
+        slug: 'sample-global-excellence-award',
+        title: 'Global Excellence Scholarship',
+        country_code: 'US',
+        degree_levels: ['Undergraduate', 'Masters'],
+        deadline: new Date(Date.now() + 45*24*60*60*1000).toISOString(),
+        summary: 'Merit-based scholarship supporting outstanding international students.',
+        tags: ['Merit', 'International'],
+        featured: true,
+        official_link: '#'
+      },
+      {
+        slug: 'sample-research-grant',
+        title: 'International Research Grant',
+        country_code: 'GB',
+        degree_levels: ['PhD'],
+        deadline: new Date(Date.now() + 60*24*60*60*1000).toISOString(),
+        summary: 'Funding for high-impact doctoral research in STEM.',
+        tags: ['STEM', 'Research'],
+        featured: true,
+        official_link: '#'
+      },
+      {
+        slug: 'sample-leadership-fellowship',
+        title: 'Leadership Fellowship Program',
+        country_code: 'CA',
+        degree_levels: ['Masters'],
+        deadline: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+        summary: 'Fully-funded leadership program for emerging leaders.',
+        tags: ['Leadership'],
+        featured: true,
+        official_link: '#'
+      }
+    ];
+
+    const featuredScholarships = (scholarships && scholarships.length) ? scholarships : sampleScholarships;
+
+    const fallbackCountries = countriesList.slice(0, 12).map(c => ({
+      code: c.code,
+      name: c.name,
+      scholarships: [],
+      scholarship_count: 0
+    }));
+
+    const countriesBlock = (countriesWithCounts && countriesWithCounts.length) ? countriesWithCounts : fallbackCountries;
+
+    const samplePosts = [
+      { slug: 'sample-essay-tips', title: 'How to Write a Winning Scholarship Essay', summary: 'Practical steps to craft compelling essays.', tags: ['Essay', 'Applications'], featured: true, created_at: new Date().toISOString() },
+      { slug: 'sample-visa-guide', title: 'Student Visa Guide: What You Need to Know', summary: 'Timeline, documents, and common pitfalls.', tags: ['Visa'], featured: false, created_at: new Date().toISOString() },
+      { slug: 'sample-recommendations', title: 'Requesting Recommendation Letters the Right Way', summary: 'Tactics to get strong, specific endorsements.', tags: ['Applications'], featured: false, created_at: new Date().toISOString() }
+    ];
+
+    const latest = (latestPosts && latestPosts.length) ? latestPosts : samplePosts;
+
     res.render('pages/home', {
       title: 'Find Your Perfect Scholarship - ScholarPathway',
       description: 'Discover scholarships and study abroad opportunities worldwide. Search thousands of scholarships for students.',
-      featuredScholarships: scholarships || [],
-      countries: countriesWithCounts,
-      latestPosts: latestPosts || [],
+      featuredScholarships: featuredScholarships,
+      countries: countriesBlock,
+      latestPosts: latest,
       currentUrl: req.originalUrl
     });
   } catch (error) {
@@ -79,33 +135,10 @@ exports.scholarships = async (req, res) => {
       `)
       .eq('is_published', true);
 
-    // Apply filters
+    // Apply filters (safe ILIKE search only)
     if (q && q.trim()) {
-      // Try full-text search first, fallback to ILIKE
-      const { data: ftsResults, error: ftsError } = await supabase
-        .from('scholarships')
-        .select(`
-          id, slug, title, country_code, degree_levels, deadline, summary, tags, featured,
-          countries(name)
-        `)
-        .eq('is_published', true)
-        .textSearch('search_vector', q.trim(), { type: 'websearch' })
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
-
-      if (!ftsError && ftsResults && ftsResults.length > 0) {
-        query = supabase
-          .from('scholarships')
-          .select(`
-            id, slug, title, country_code, degree_levels, deadline, summary, tags, featured,
-            countries(name)
-          `)
-          .eq('is_published', true)
-          .textSearch('search_vector', q.trim(), { type: 'websearch' });
-      } else {
-        // Fallback to ILIKE search
-        query = query.or(`title.ilike.%${q.trim()}%,summary.ilike.%${q.trim()}%,eligibility.ilike.%${q.trim()}%`);
-      }
+      const term = q.trim().replace(/%/g, '');
+      query = query.or(`title.ilike.%${term}%,summary.ilike.%${term}%`);
     }
 
     if (country) {
@@ -127,7 +160,8 @@ exports.scholarships = async (req, res) => {
       .eq('is_published', true);
 
     if (q && q.trim()) {
-      countQuery.textSearch('search_vector', q.trim(), { type: 'websearch' });
+      const term = q.trim().replace(/%/g, '');
+      countQuery.or(`title.ilike.%${term}%,summary.ilike.%${term}%`);
     }
     if (country) countQuery.eq('country_code', country.toUpperCase());
     if (degree) countQuery.contains('degree_levels', [degree]);
@@ -189,6 +223,24 @@ exports.scholarshipDetail = async (req, res) => {
       .single();
 
     if (error || !scholarship) {
+      // Sample fallback detail
+      if (req.params.slug && req.params.slug.startsWith('sample-')) {
+        return res.render('pages/scholarship-detail', {
+          title: 'Sample Scholarship - ScholarPathway',
+          description: 'Example scholarship details.',
+          scholarship: {
+            title: 'Sample Scholarship',
+            summary: 'This is example content. Replace with real data from your dashboard.',
+            country_code: 'US',
+            degree_levels: ['Undergraduate'],
+            deadline: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+            tags: ['Sample']
+          },
+          related: [],
+          canonicalUrl: `${process.env.SITE_URL || ''}${req.originalUrl}`,
+          currentUrl: req.originalUrl
+        });
+      }
       return res.status(404).render('pages/404', { title: 'Scholarship Not Found' });
     }
 
@@ -280,6 +332,22 @@ exports.tipDetail = async (req, res) => {
       .single();
 
     if (error || !post) {
+      if (req.params.slug && req.params.slug.startsWith('sample-')) {
+        return res.render('pages/tip-detail', {
+          title: 'Sample Article - ScholarPathway',
+          description: 'Example article content.',
+          post: {
+            title: 'How to Start Your Scholarship Search',
+            summary: 'Getting started with strategy and tools.',
+            content: '<p>This is example content. Replace with real posts from your dashboard.</p>',
+            created_at: new Date().toISOString(),
+            tags: ['Essay','Applications']
+          },
+          recentPosts: [],
+          canonicalUrl: `${process.env.SITE_URL || ''}${req.originalUrl}`,
+          currentUrl: req.originalUrl
+        });
+      }
       return res.status(404).render('pages/404', { title: 'Post Not Found' });
     }
 
@@ -321,11 +389,16 @@ exports.countries = async (req, res) => {
 
     if (error) throw error;
 
-    const countriesWithCounts = countries.map(country => ({
-      ...country,
-      count: country.scholarships ? country.scholarships.length : 0,
-      flag: getCountryFlag(country.code)
-    }));
+    let countriesWithCounts = [];
+    if (countries && countries.length) {
+      countriesWithCounts = countries.map(country => ({
+        ...country,
+        count: country.scholarships ? country.scholarships.length : 0,
+        flag: getCountryFlag(country.code)
+      }));
+    } else {
+      countriesWithCounts = countriesList.map(c => ({ code: c.code, name: c.name, count: 0, flag: getCountryFlag(c.code) }));
+    }
 
     res.render('pages/countries', {
       title: 'Study Destinations - ScholarPathway',
@@ -462,6 +535,9 @@ exports.contactSubmit = async (req, res) => {
       }
     } catch (e) { console.error('Contact email error:', e.message); }
 
+    if (req.headers['x-requested-with'] === 'XMLHttpRequest' || (req.headers.accept || '').includes('application/json')) {
+      return res.json({ success: 'Thank you for your message! We\'ll get back to you soon.' });
+    }
     res.render('pages/contact', {
       title: 'Contact Us - ScholarPathway',
       description: 'Get in touch with ScholarPathway.',
@@ -470,6 +546,9 @@ exports.contactSubmit = async (req, res) => {
     });
   } catch (error) {
     console.error('Contact submit error:', error);
+    if (req.headers['x-requested-with'] === 'XMLHttpRequest' || (req.headers.accept || '').includes('application/json')) {
+      return res.status(400).json({ error: 'Failed to send message. Please try again.' });
+    }
     res.render('pages/contact', {
       title: 'Contact Us - ScholarPathway',
       description: 'Get in touch with ScholarPathway.',

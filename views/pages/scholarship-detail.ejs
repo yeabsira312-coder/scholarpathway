@@ -1,0 +1,23 @@
+<section class="container py-5">
+  <h1 class="mb-3"><%= scholarship.title %></h1>
+  <p class="text-muted"><%= scholarship.summary %></p>
+
+  <div class="row mt-4">
+    <div class="col-md-8">
+      <h3 class="h6">Overview</h3>
+      <p>Country: <strong><%= scholarship.country_code %></strong></p>
+      <% if (scholarship.degree_levels && scholarship.degree_levels.length) { %>
+        <p>Degrees: <%= scholarship.degree_levels.join(', ') %></p>
+      <% } %>
+      <% if (scholarship.deadline) { %>
+        <p>Deadline: <%= new Date(scholarship.deadline).toLocaleDateString('en-US') %></p>
+      <% } %>
+      <% if (scholarship.tags && scholarship.tags.length) { %>
+        <p>Tags: <%= scholarship.tags.join(', ') %></p>
+      <% } %>
+    </div>
+    <div class="col-md-4">
+      <a href="#" class="btn btn-primary w-100">Apply Now</a>
+    </div>
+  </div>
+</section>

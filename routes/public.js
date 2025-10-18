@@ -38,4 +38,9 @@ router.get('/sitemap.xml', publicController.sitemap);
 router.get('/robots.txt', publicController.robots);
 router.get('/feed.xml', publicController.feed);
 
+// Redirect footer links to About for now (avoid 404s)
+router.get('/help', (req, res) => res.redirect(301, '/about'));
+router.get('/privacy', (req, res) => res.redirect(301, '/about'));
+router.get('/terms', (req, res) => res.redirect(301, '/about'));
+
 module.exports = router;

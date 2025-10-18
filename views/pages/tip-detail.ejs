@@ -1,0 +1,12 @@
+<section class="container py-5">
+  <h1 class="mb-3"><%= post.title %></h1>
+  <p class="text-muted"><%= post.summary %></p>
+  <hr>
+  <div>
+    <% if (post.content) { %>
+      <%- post.content %>
+    <% } else { %>
+      <p>Detailed article content will appear here.</p>
+    <% } %>
+  </div>
+</section>
