@@ -1,0 +1,19 @@
+<% layout('layouts/layout') %>
+
+<section class="container py-5">
+  <h1 class="mb-4">Countries</h1>
+  <div class="row g-3">
+    <% if (typeof countries !== 'undefined' && countries && countries.length) { %>
+      <% countries.forEach(c => { %>
+        <div class="col-md-3">
+          <a class="card card-body text-decoration-none" href="/countries/<%= c.code.toLowerCase() %>">
+            <strong><%= c.name %></strong>
+            <small class="text-muted"><%= (c.count || 0) %> scholarships</small>
+          </a>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <p class="text-muted">No countries available.</p>
+    <% } %>
+  </div>
+</section>

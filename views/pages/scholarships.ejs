@@ -1,3 +1,4 @@
+<% const query = (typeof filters !== 'undefined' && filters) ? filters : (typeof query !== 'undefined' ? query : {}); %>
 <!-- Page Header -->
 <section class="py-5 bg-light">
   <div class="container">
@@ -27,8 +28,8 @@
         <label for="country-filter" class="form-label">Country</label>
         <select class="form-select" id="country-filter" name="country">
           <option value="">All Countries</option>
-          <% if (availableCountries && availableCountries.length > 0) { %>
-            <% availableCountries.forEach(country => { %>
+          <% if (typeof countries !== 'undefined' && countries && countries.length > 0) { %>
+            <% countries.forEach(country => { %>
               <option value="<%= country.code %>" <%= query.country === country.code ? 'selected' : '' %>>
                 <%= country.name %>
               </option>
@@ -268,7 +269,7 @@
               </li>
               <li class="d-flex justify-content-between">
                 <span>Countries:</span>
-                <strong><%= (availableCountries && availableCountries.length) || 0 %></strong>
+                <strong><%= (typeof countries !== 'undefined' && countries && countries.length) || 0 %></strong>
               </li>
               <li class="d-flex justify-content-between">
                 <span>Featured:</span>

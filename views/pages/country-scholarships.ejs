@@ -1,0 +1,47 @@
+<% layout('layouts/layout') %>
+
+<section class="container py-5">
+  <h1 class="mb-4"><%= (typeof country !== 'undefined' && country ? country.name : 'Country') %> Scholarships</h1>
+
+  <div class="row">
+    <div class="col-lg-9">
+      <div class="row">
+        <% if (typeof scholarships !== 'undefined' && scholarships && scholarships.length) { %>
+          <% scholarships.forEach(s => { %>
+            <div class="col-md-6 mb-4">
+              <div class="card h-100">
+                <div class="card-body">
+                  <h5 class="card-title">
+                    <a class="text-decoration-none" href="/scholarships/<%= s.slug %>"><%= s.title %></a>
+                  </h5>
+                  <p class="text-muted"><%= s.summary %></p>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <p class="text-muted">No scholarships found.</p>
+        <% } %>
+      </div>
+
+      <% if (typeof pagination !== 'undefined' && pagination && pagination.totalPages > 1) { %>
+        <nav class="mt-4">
+          <ul class="pagination">
+            <% if (pagination.hasPrev) { %>
+              <li class="page-item"><a class="page-link" href="?page=<%= pagination.currentPage - 1 %>">Previous</a></li>
+            <% } %>
+            <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+              <li class="page-item <%= i === pagination.currentPage ? 'active' : '' %>"><a class="page-link" href="?page=<%= i %>"><%= i %></a></li>
+            <% } %>
+            <% if (pagination.hasNext) { %>
+              <li class="page-item"><a class="page-link" href="?page=<%= pagination.currentPage + 1 %>">Next</a></li>
+            <% } %>
+          </ul>
+        </nav>
+      <% } %>
+    </div>
+    <div class="col-lg-3">
+      <div class="card"><div class="card-body">More in <strong><%= (country && country.name) || 'this country' %></strong></div></div>
+    </div>
+  </div>
+</section>
