@@ -61,6 +61,11 @@ app.use((req, res, next) => {
     ga: process.env.GA_MEASUREMENT_ID || '',
     adsenseClient: process.env.ADSENSE_CLIENT || ''
   };
+  // Safe defaults for templates
+  res.locals.title = null;
+  res.locals.description = '';
+  res.locals.structuredData = null;
+  res.locals.originalUrl = req.originalUrl;
   res.locals.user = req.session && req.session.user;
   next();
 });
