@@ -138,6 +138,7 @@ body {
 .search-bar {
   max-width: 600px;
   margin: 0 auto;
+  position: relative;
 }
 
 .search-bar .form-control {
@@ -149,6 +150,49 @@ body {
 .search-bar .btn {
   border-radius: 0 50px 50px 0;
   padding: 0.75rem 1.5rem;
+}
+
+/* Search Suggestions */
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+}
+
+.suggestion-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover,
+.suggestion-item.active {
+  background-color: #f8f9fa;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item strong {
+  color: #0055FF;
+  font-weight: 600;
+}
+
+/* Make form groups relative for positioning */
+.form-group {
+  position: relative;
 }
 
 /* Badges */
