@@ -1,20 +1,178 @@
-<section class="container py-5">
-  <h1 class="mb-3">Contact</h1>
-  <p class="text-muted">Send us a message and we’ll get back to you.</p>
-<form id="contact-form" method="POST" action="/contact" class="mt-4" style="max-width:600px">
-    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-    <div class="mb-3">
-      <label class="form-label">Name</label>
-      <input class="form-control" name="name" required>
+<!-- Hero Section -->
+<section class="bg-light py-5">
+  <div class="container text-center">
+    <h1 class="display-4 fw-bold text-primary mb-4">Contact ScholarPathway</h1>
+    <p class="lead text-muted mb-4">We're here to help you on your educational journey. Get in touch with our team!</p>
+    <div class="d-flex justify-content-center flex-wrap gap-3">
+      <div class="d-flex align-items-center">
+        <i class="fas fa-clock text-primary me-2"></i>
+        <span>24-48 hour response</span>
+      </div>
+      <div class="d-flex align-items-center">
+        <i class="fas fa-globe text-success me-2"></i>
+        <span>Global support team</span>
+      </div>
+      <div class="d-flex align-items-center">
+        <i class="fas fa-shield-alt text-info me-2"></i>
+        <span>100% confidential</span>
+      </div>
     </div>
-    <div class="mb-3">
-      <label class="form-label">Email</label>
-      <input type="email" class="form-control" name="email" required>
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Message</label>
-      <textarea class="form-control" name="message" rows="4" required></textarea>
-    </div>
-    <button class="btn btn-primary" type="submit">Send</button>
-  </form>
+  </div>
 </section>
+
+<!-- Main Content -->
+<section class="container py-5">
+  <div class="row g-5">
+    <!-- Contact Form -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-5">
+          <h2 class="h3 text-primary mb-4">Send us a Message</h2>
+          <p class="text-muted mb-4">Have questions about scholarships, need application guidance, or want to suggest improvements? We'd love to hear from you!</p>
+          
+          <% if (typeof success !== 'undefined' && success) { %>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <i class="fas fa-check-circle me-2"></i>
+              <%= success %>
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          <% } %>
+          
+          <% if (typeof errors !== 'undefined' && errors && errors.length > 0) { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <%= errors[0].msg %>
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          <% } %>
+          
+          <form id="contact-form" method="POST" action="/contact">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" name="name" placeholder="Enter your full name" value="<%= typeof formData !== 'undefined' ? formData.name || '' : '' %>" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                <input type="email" class="form-control form-control-lg" name="email" placeholder="your.email@example.com" value="<%= typeof formData !== 'undefined' ? formData.email || '' : '' %>" required>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Subject</label>
+              <select class="form-select form-select-lg" name="subject">
+                <option value="">Select a topic...</option>
+                <option value="Scholarship Question">Scholarship Question</option>
+                <option value="Application Help">Application Help</option>
+                <option value="Technical Issue">Technical Issue</option>
+                <option value="Partnership Inquiry">Partnership Inquiry</option>
+                <option value="Feedback">Feedback & Suggestions</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Message <span class="text-danger">*</span></label>
+              <textarea class="form-control form-control-lg" name="message" rows="6" placeholder="Tell us how we can help you..." required><%= typeof formData !== 'undefined' ? formData.message || '' : '' %></textarea>
+              <div class="form-text">Please be as detailed as possible so we can provide the best assistance.</div>
+            </div>
+            
+            <button class="btn btn-primary btn-lg px-5" type="submit">
+              <i class="fas fa-paper-plane me-2"></i>Send Message
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Contact Information -->
+    <div class="col-lg-4">
+      <!-- Quick Contact Info -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h3 class="h5 text-primary mb-3">Get in Touch</h3>
+          <div class="d-flex align-items-start mb-3">
+            <i class="fas fa-envelope text-primary me-3 mt-1"></i>
+            <div>
+              <strong>Email Support</strong><br>
+              <span class="text-muted">support@scholarpathway.com</span>
+            </div>
+          </div>
+          <div class="d-flex align-items-start mb-3">
+            <i class="fas fa-clock text-success me-3 mt-1"></i>
+            <div>
+              <strong>Response Time</strong><br>
+              <span class="text-muted">24-48 hours</span>
+            </div>
+          </div>
+          <div class="d-flex align-items-start">
+            <i class="fas fa-globe text-info me-3 mt-1"></i>
+            <div>
+              <strong>Office Hours</strong><br>
+              <span class="text-muted">Mon-Fri, 9 AM - 6 PM UTC</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- FAQ Link -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h3 class="h5 text-primary mb-3">Need Quick Answers?</h3>
+          <p class="text-muted mb-3">Check our Help Center for instant answers to common questions about scholarships, applications, and our platform.</p>
+          <a href="/help" class="btn btn-outline-primary w-100">
+            <i class="fas fa-question-circle me-2"></i>Visit Help Center
+          </a>
+        </div>
+      </div>
+      
+      <!-- Social Media -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="h5 text-primary mb-3">Follow Us</h3>
+          <p class="text-muted mb-3">Stay updated with the latest scholarship opportunities and success stories.</p>
+          <div class="d-flex gap-2">
+            <a href="#" class="btn btn-outline-primary btn-sm" title="Facebook">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="btn btn-outline-primary btn-sm" title="Twitter">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="btn btn-outline-primary btn-sm" title="LinkedIn">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a href="#" class="btn btn-outline-primary btn-sm" title="Instagram">
+              <i class="fab fa-instagram"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bottom CTA -->
+  <div class="text-center mt-5">
+    <h3 class="h4 text-primary mb-3">Ready to Start Your Scholarship Journey?</h3>
+    <p class="text-muted mb-4">Don't wait! Explore thousands of scholarships available right now.</p>
+    <a href="/scholarships" class="btn btn-success btn-lg px-5">
+      <i class="fas fa-search me-2"></i>Browse Scholarships
+    </a>
+  </div>
+</section>
+
+<script>
+document.getElementById('contact-form').addEventListener('submit', function(e) {
+  const btn = this.querySelector('button[type="submit"]');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+  btn.disabled = true;
+  
+  // Re-enable button after form submission completes
+  setTimeout(() => {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }, 3000);
+});
+</script>
