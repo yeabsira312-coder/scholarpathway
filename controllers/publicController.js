@@ -5,197 +5,13 @@ const { getPagination } = require('../utils/pagination');
 const dayjs = require('dayjs');
 const { sendEmail } = require('../utils/email');
 const { countriesList } = require('../utils/countries');
+const { scholarshipsDatabase, studyTipsDatabase } = require('../data/scholarships-database');
 
-// Comprehensive sample data for fallback
-const sampleScholarships = [
-  {
-    id: 1,
-    slug: 'global-excellence-scholarship-2024',
-    title: 'Global Excellence Scholarship 2024',
-    country_code: 'US',
-    degree_levels: ['Undergraduate', 'Masters'],
-    deadline: new Date(Date.now() + 45*24*60*60*1000).toISOString(),
-    summary: 'Merit-based scholarship supporting outstanding international students pursuing undergraduate and graduate studies in the United States.',
-    tags: ['Merit', 'International', 'Full-funding'],
-    featured: true,
-    amount: '$50,000',
-    is_published: true,
-    created_at: new Date().toISOString(),
-    countries: { name: 'United States' },
-    official_link: 'https://www.fulbrightonline.org/apply'
-  },
-  {
-    id: 2,
-    slug: 'stem-research-fellowship-uk',
-    title: 'STEM Research Fellowship - UK',
-    country_code: 'GB',
-    degree_levels: ['PhD'],
-    deadline: new Date(Date.now() + 60*24*60*60*1000).toISOString(),
-    summary: 'Fully-funded doctoral research fellowship for high-impact STEM research in leading UK universities.',
-    tags: ['STEM', 'Research', 'PhD'],
-    featured: true,
-    amount: '£35,000',
-    is_published: true,
-    created_at: new Date().toISOString(),
-    countries: { name: 'United Kingdom' },
-    official_link: 'https://www.chevening.org/apply'
-  },
-  {
-    id: 3,
-    slug: 'leadership-development-canada',
-    title: 'Leadership Development Program - Canada',
-    country_code: 'CA',
-    degree_levels: ['Masters'],
-    deadline: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
-    summary: 'Comprehensive leadership program combining academic excellence with practical leadership training.',
-    tags: ['Leadership', 'Business', 'Full-funding'],
-    featured: true,
-    amount: 'CAD 45,000',
-    is_published: true,
-    created_at: new Date().toISOString(),
-    countries: { name: 'Canada' },
-    official_link: 'https://www.scholarships-bourses.gc.ca/scholarships-bourses/app/index-eng.aspx'
-  },
-  {
-    id: 4,
-    slug: 'innovation-scholarship-germany',
-    title: 'Innovation Scholarship Germany',
-    country_code: 'DE',
-    degree_levels: ['Masters', 'PhD'],
-    deadline: new Date(Date.now() + 75*24*60*60*1000).toISOString(),
-    summary: 'Supporting innovative research and entrepreneurship in German universities and research institutions.',
-    tags: ['Innovation', 'Engineering', 'Technology'],
-    featured: false,
-    amount: '€40,000',
-    is_published: true,
-    created_at: new Date().toISOString(),
-    countries: { name: 'Germany' },
-    official_link: 'https://www.daad.de/en/study-and-research-in-germany/scholarships/'
-  },
-  {
-    id: 5,
-    slug: 'sustainable-development-australia',
-    title: 'Sustainable Development Scholarship - Australia',
-    country_code: 'AU',
-    degree_levels: ['Undergraduate', 'Masters'],
-    deadline: new Date(Date.now() + 90*24*60*60*1000).toISOString(),
-    summary: 'Focus on environmental sustainability, climate change, and sustainable development practices.',
-    tags: ['Sustainability', 'Environment', 'Climate'],
-    featured: false,
-    amount: 'AUD 35,000',
-    is_published: true,
-    created_at: new Date().toISOString(),
-    countries: { name: 'Australia' },
-    official_link: 'https://www.australiaawards.gov.au/apply-now'
-  },
-  {
-    id: 6,
-    slug: 'cultural-exchange-japan',
-    title: 'Cultural Exchange Scholarship - Japan',
-    country_code: 'JP',
-    degree_levels: ['Undergraduate'],
-    deadline: new Date(Date.now() + 40*24*60*60*1000).toISOString(),
-    summary: 'Immersive cultural and academic experience in Japanese universities with language support.',
-    tags: ['Cultural Exchange', 'Language', 'Asia'],
-    featured: false,
-    amount: '¥3,000,000',
-    is_published: true,
-    created_at: new Date().toISOString(),
-    countries: { name: 'Japan' },
-    official_link: 'https://www.jasso.go.jp/en/study_j/scholarships/'
-  }
-];
+// Use comprehensive scholarship database as fallback
+const sampleScholarships = scholarshipsDatabase;
 
-const samplePosts = [
-  {
-    id: 1,
-    slug: 'scholarship-essay-writing-guide',
-    title: 'How to Write a Winning Scholarship Essay',
-    summary: 'Complete guide to crafting compelling scholarship essays that stand out to selection committees.',
-    content: '<p>Writing a scholarship essay can be the key to securing funding for your education. Here are proven strategies...</p>',
-    tags: ['Essay', 'Applications', 'Writing'],
-    featured: true,
-    is_published: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 2,
-    slug: 'student-visa-application-guide',
-    title: 'Student Visa Guide: What You Need to Know',
-    summary: 'Step-by-step guide to student visa applications, requirements, and common pitfalls to avoid.',
-    content: '<p>Navigating the student visa process can be complex. This comprehensive guide breaks down everything you need to know...</p>',
-    tags: ['Visa', 'Immigration', 'Students'],
-    featured: true,
-    is_published: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 3,
-    slug: 'recommendation-letters-best-practices',
-    title: 'Getting Strong Recommendation Letters',
-    summary: 'Strategies for requesting and securing powerful recommendation letters from professors and employers.',
-    content: '<p>Strong recommendation letters can make or break your scholarship application. Here\'s how to get them...</p>',
-    tags: ['Recommendations', 'Applications', 'Networking'],
-    featured: false,
-    is_published: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 4,
-    slug: 'study-abroad-budget-planning',
-    title: 'Study Abroad Budget: Complete Planning Guide',
-    summary: 'Learn how to budget effectively for your study abroad experience, including hidden costs and money-saving tips.',
-    content: '<p>Studying abroad requires careful financial planning. This guide covers all expenses you need to consider...</p>',
-    tags: ['Budget', 'Study Abroad', 'Financial Planning'],
-    featured: true,
-    is_published: true,
-    created_at: new Date(Date.now() - 86400000).toISOString()
-  },
-  {
-    id: 5,
-    slug: 'gre-gmat-test-preparation',
-    title: 'GRE vs GMAT: Which Test Should You Take?',
-    summary: 'Comprehensive comparison of GRE and GMAT exams, including preparation strategies and score requirements.',
-    content: '<p>Choosing between GRE and GMAT can impact your graduate school applications. Here\'s what you need to know...</p>',
-    tags: ['GRE', 'GMAT', 'Test Prep', 'Graduate School'],
-    featured: false,
-    is_published: true,
-    created_at: new Date(Date.now() - 2*86400000).toISOString()
-  },
-  {
-    id: 6,
-    slug: 'phd-application-timeline',
-    title: 'PhD Application Timeline: When to Start and What to Expect',
-    summary: 'Complete timeline for PhD applications, from initial research to final decisions, with key milestones.',
-    content: '<p>Planning your PhD application requires understanding the lengthy timeline involved. Start planning early...</p>',
-    tags: ['PhD', 'Graduate School', 'Applications', 'Timeline'],
-    featured: false,
-    is_published: true,
-    created_at: new Date(Date.now() - 3*86400000).toISOString()
-  },
-  {
-    id: 7,
-    slug: 'interview-skills-scholarship-applications',
-    title: 'Acing Your Scholarship Interview: Tips from Experts',
-    summary: 'Master scholarship interviews with proven techniques, common questions, and confidence-building strategies.',
-    content: '<p>Many scholarships require interviews. Learn how to prepare effectively and make a lasting impression...</p>',
-    tags: ['Interview', 'Scholarships', 'Communication'],
-    featured: false,
-    is_published: true,
-    created_at: new Date(Date.now() - 4*86400000).toISOString()
-  },
-  {
-    id: 8,
-    slug: 'undergraduate-research-opportunities',
-    title: 'Finding Research Opportunities as an Undergraduate',
-    summary: 'Discover how to find and apply for undergraduate research positions that strengthen your academic profile.',
-    content: '<p>Research experience is invaluable for your academic and professional development. Here\'s how to get started...</p>',
-    tags: ['Research', 'Undergraduate', 'Academic', 'Experience'],
-    featured: false,
-    is_published: true,
-    created_at: new Date(Date.now() - 5*86400000).toISOString()
-  }
-];
+// Use comprehensive study tips database as fallback
+const samplePosts = studyTipsDatabase;
 
 const sampleCountries = countriesList.slice(0, 15).map((country, index) => ({
   code: country.code,
@@ -874,6 +690,11 @@ exports.contact = (req, res) => {
 // Contact form submission with robust error handling
 exports.contactSubmit = async (req, res) => {
   try {
+    // Add CORS headers for AJAX requests
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       if (req.headers['x-requested-with'] === 'XMLHttpRequest' || (req.headers.accept || '').includes('application/json')) {
@@ -1000,6 +821,11 @@ exports.contactSubmit = async (req, res) => {
 // Newsletter subscription with robust error handling
 exports.subscribe = async (req, res) => {
   try {
+    // Add CORS headers for AJAX requests
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
