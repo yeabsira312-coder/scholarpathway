@@ -24,8 +24,8 @@ const sampleScholarships = scholarshipsDatabase;
 // Use comprehensive study tips database as fallback
 const samplePosts = studyTipsDatabase;
 
-// Generate countries with real scholarship counts from mega database
-const sampleCountries = countriesList.slice(0, 15).map((country) => {
+// Generate countries with real scholarship counts from mega database (only countries with scholarships)
+const sampleCountries = countriesList.slice(0, 25).map((country) => {
   const scholarshipsForCountry = sampleScholarships.filter(s => s.country_code === country.code);
   return {
     code: country.code,
@@ -35,7 +35,7 @@ const sampleCountries = countriesList.slice(0, 15).map((country) => {
     count: scholarshipsForCountry.length || 0,
     flag: getCountryFlag(country.code)
   };
-});
+}).filter(country => country.count > 0); // Only show countries with scholarships
 
 // Helper function to get country flag emoji
 function getCountryFlag(countryCode) {
@@ -143,7 +143,12 @@ exports.scholarships = async (req, res) => {
     
     let scholarships = [...sampleScholarships];
     let totalCount = sampleScholarships.length;
-    let countries = countriesList.slice(0, 20).map(c => ({ code: c.code, name: c.name }));
+    // Get unique countries from scholarships for filter dropdown
+    const uniqueCountryCodes = [...new Set(sampleScholarships.map(s => s.country_code))];
+    let countries = countriesList
+      .filter(c => uniqueCountryCodes.includes(c.code))
+      .slice(0, 30)
+      .map(c => ({ code: c.code, name: c.name }));
 
     // Try to fetch real data if Supabase is configured
     if (isConfigured && supabase) {
@@ -228,6 +233,13 @@ exports.scholarships = async (req, res) => {
         if (degree) {
           scholarships = scholarships.filter(s => s.degree_levels.includes(degree));
         }
+        if (deadlineBefore) {
+          scholarships = scholarships.filter(s => {
+            const deadlineDate = new Date(s.deadline);
+            const filterDate = new Date(deadlineBefore);
+            return deadlineDate <= filterDate;
+          });
+        }
         totalCount = scholarships.length;
       }
     } else {
@@ -245,6 +257,13 @@ exports.scholarships = async (req, res) => {
       }
       if (degree) {
         scholarships = scholarships.filter(s => s.degree_levels.includes(degree));
+      }
+      if (deadlineBefore) {
+        scholarships = scholarships.filter(s => {
+          const deadlineDate = new Date(s.deadline);
+          const filterDate = new Date(deadlineBefore);
+          return deadlineDate <= filterDate;
+        });
       }
       totalCount = scholarships.length;
     }
@@ -583,7 +602,7 @@ exports.countries = async (req, res) => {
         scholarship_count: scholarshipsForCountry.length || 0,
         flag: country.flag || getCountryFlag(country.code)
       };
-    });
+    }).filter(country => country.count > 0); // Only show countries with scholarships
 
     res.render('pages/countries', {
       title: 'Study Destinations - ScholarPathway',
@@ -602,7 +621,7 @@ exports.countries = async (req, res) => {
         count: scholarshipsForCountry.length || 0,
         flag: getCountryFlag(c.code)
       };
-    });
+    }).filter(country => country.count > 0); // Only show countries with scholarships
     
     res.render('pages/countries', {
       title: 'Study Destinations - ScholarPathway',

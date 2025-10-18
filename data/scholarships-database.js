@@ -1,5 +1,5 @@
-// MASSIVE Comprehensive Scholarship Database - 500+ Real Scholarships Worldwide
-// Real opportunities from top universities in every country with full global coverage
+// ScholarPathway Scholarship Database - Optimized for Deployment
+// Essential scholarships for fast site loading
 
 const scholarshipsDatabase = [
   // USA Scholarships (100+)
@@ -198,7 +198,7 @@ const scholarshipsDatabase = [
 
   // Add 490+ more scholarships from around the world
   
-  // USA - Top Universities (100+ scholarships)
+  // Keep essential scholarships only for fast deployment
   {
     id: 11,
     slug: 'harvard-undergraduate-aid',
@@ -206,9 +206,9 @@ const scholarshipsDatabase = [
     country_code: 'US',
     degree_levels: ['Undergraduate'],
     deadline: new Date('2025-02-01').toISOString(),
-    summary: 'Harvard College provides need-based financial aid with no student loans. Families earning less than $75,000 pay nothing.',
+    summary: 'Harvard College provides need-based financial aid with no student loans.',
     amount: 'Up to $80,000',
-    tags: ['Need-based', 'No Loans', 'Ivy League'],
+    tags: ['Need-based', 'Ivy League'],
     featured: true,
     is_published: true,
     created_at: new Date().toISOString(),

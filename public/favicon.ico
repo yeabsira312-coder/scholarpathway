@@ -1,0 +1,13 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="6" fill="#0055FF"/>
+  <g fill="white">
+    <!-- Graduation cap -->
+    <polygon points="8,14 16,11 24,14 24,16 8,16" />
+    <rect x="15" y="16" width="2" height="6" />
+    <circle cx="16" cy="23" r="1" />
+    <!-- Book pages -->
+    <rect x="10" y="18" width="12" height="1" opacity="0.7" />
+    <rect x="10" y="20" width="10" height="1" opacity="0.7" />
+    <rect x="10" y="22" width="8" height="1" opacity="0.7" />
+  </g>
+</svg>

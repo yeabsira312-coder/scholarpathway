@@ -1,48 +1,155 @@
-<div class="container my-5">
-  <!-- Header -->
-  <div class="row mb-4">
-    <div class="col-lg-8 mx-auto text-center">
-      <h1 class="display-5 fw-bold text-primary mb-3">Study Tips & Guides</h1>
-      <p class="lead text-muted">Get expert tips and guides for studying abroad, scholarship applications, and academic success.</p>
+<!-- Hero Section -->
+<section class="bg-gradient-primary text-white py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8 mx-auto text-center">
+        <div class="hero-icon mb-4">
+          <i class="fas fa-lightbulb display-3 text-warning"></i>
+        </div>
+        <h1 class="display-4 fw-bold mb-3">Study Tips & Expert Guides</h1>
+        <p class="lead mb-4">Master your academic journey with proven strategies from education experts and successful scholars worldwide.</p>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+          <span class="badge bg-light text-primary fs-6 px-3 py-2">Expert Advice</span>
+          <span class="badge bg-light text-primary fs-6 px-3 py-2">Proven Strategies</span>
+          <span class="badge bg-light text-primary fs-6 px-3 py-2">Success Stories</span>
+        </div>
+      </div>
     </div>
   </div>
+</section>
 
-  <!-- Posts Grid -->
+<!-- Filter & Search Section -->
+<section class="py-4 bg-light border-bottom">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <div class="input-group">
+          <input type="text" id="tips-search" class="form-control" placeholder="Search study tips and guides..." aria-label="Search tips">
+          <button class="btn btn-primary" type="button" id="search-btn">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="d-flex gap-2 flex-wrap mt-3 mt-md-0">
+          <button class="btn btn-outline-primary btn-sm filter-btn active" data-filter="all">All Topics</button>
+          <button class="btn btn-outline-primary btn-sm filter-btn" data-filter="Applications">Applications</button>
+          <button class="btn btn-outline-primary btn-sm filter-btn" data-filter="Essays">Essays</button>
+          <button class="btn btn-outline-primary btn-sm filter-btn" data-filter="Study Abroad">Study Abroad</button>
+          <button class="btn btn-outline-primary btn-sm filter-btn" data-filter="Financial Aid">Financial Aid</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container py-5">
+
+  <!-- Featured Article -->
+  <% if (posts && posts.length > 0 && posts[0].featured) { %>
+    <div class="row mb-5">
+      <div class="col-12">
+        <article class="featured-article card border-0 shadow-lg overflow-hidden">
+          <div class="card-body p-0">
+            <div class="row g-0">
+              <div class="col-md-4">
+                <div class="featured-img-placeholder bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 300px;">
+                  <i class="fas fa-star text-white display-2"></i>
+                </div>
+              </div>
+              <div class="col-md-8">
+                <div class="p-5">
+                  <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-warning text-dark me-2">Featured Guide</span>
+                    <small class="text-muted">
+                      <i class="fas fa-calendar-alt me-1"></i>
+                      <%= new Date(posts[0].created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
+                    </small>
+                  </div>
+                  
+                  <h2 class="h3 card-title mb-3">
+                    <a href="/tips/<%= posts[0].slug %>" class="text-decoration-none text-dark">
+                      <%= posts[0].title %>
+                    </a>
+                  </h2>
+                  
+                  <p class="card-text text-muted mb-4 lead"><%= posts[0].summary %></p>
+                  
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                      <% if (posts[0].tags && posts[0].tags.length > 0) { %>
+                        <% posts[0].tags.slice(0, 3).forEach(tag => { %>
+                          <span class="badge bg-primary me-1"><%= tag %></span>
+                        <% }) %>
+                      <% } %>
+                    </div>
+                    <a href="/tips/<%= posts[0].slug %>" class="btn btn-primary btn-lg">
+                      Read Complete Guide <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Main Content Grid -->
   <div class="row">
     <div class="col-lg-8">
       <% if (posts && posts.length > 0) { %>
-        <% posts.forEach(post => { %>
-          <article class="card mb-4 border-0 shadow-sm">
-            <div class="card-body p-4">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <% if (post.featured) { %>
-                  <span class="badge bg-warning text-dark">Featured</span>
-                <% } %>
-                <small class="text-muted">
-                  <%= new Date(post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
-                </small>
-              </div>
-              
-              <h2 class="h4 card-title">
-                <a href="/tips/<%= post.slug %>" class="text-decoration-none text-dark">
-                  <%= post.title %>
-                </a>
-              </h2>
-              
-              <p class="card-text text-muted mb-3"><%= post.summary %></p>
-              
-              <% if (post.tags && post.tags.length > 0) { %>
-                <div class="mb-3">
-                  <% post.tags.forEach(tag => { %>
-                    <span class="badge bg-light text-dark me-1"><%= tag %></span>
-                  <% }) %>
+        <div class="row" id="tips-grid">
+          <% posts.slice(posts[0] && posts[0].featured ? 1 : 0).forEach((post, index) => { %>
+            <div class="col-md-6 mb-4 tip-card" data-tags="<%= post.tags ? post.tags.join(',') : '' %>">
+              <article class="card h-100 border-0 shadow-hover">
+                <div class="card-header bg-white border-0 pb-0">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="tip-category">
+                      <% if (post.tags && post.tags[0]) { %>
+                        <span class="badge bg-light text-primary">
+                          <i class="fas fa-bookmark me-1"></i><%= post.tags[0] %>
+                        </span>
+                      <% } %>
+                    </div>
+                    <small class="text-muted">
+                      <i class="fas fa-clock me-1"></i>
+                      <%= new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %>
+                    </small>
+                  </div>
                 </div>
-              <% } %>
-              
-              <a href="/tips/<%= post.slug %>" class="btn btn-primary">Read More</a>
+                
+                <div class="card-body d-flex flex-column">
+                  <h3 class="h5 card-title mb-3">
+                    <a href="/tips/<%= post.slug %>" class="text-decoration-none text-dark stretched-link">
+                      <%= post.title %>
+                    </a>
+                  </h3>
+                  
+                  <p class="card-text text-muted mb-3 flex-grow-1">
+                    <%= post.summary.substring(0, 120) %><%= post.summary.length > 120 ? '...' : '' %>
+                  </p>
+                  
+                  <div class="mt-auto">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="tip-meta">
+                        <small class="text-muted">
+                          <i class="fas fa-clock me-1"></i>5 min read
+                        </small>
+                      </div>
+                      <div>
+                        <span class="text-primary">
+                          Read More <i class="fas fa-arrow-right ms-1"></i>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </article>
             </div>
-          </article>
-        <% }) %>
+          <% }) %>
+        </div>
         
         <!-- Pagination -->
         <% if (pagination.totalPages > 1) { %>
@@ -114,22 +221,253 @@
         </div>
       </div>
       
-      <!-- Ad Space -->
-      <div class="mt-4 text-center">
-        <% if (site.adsenseClient) { %>
-          <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<%= site.adsenseClient %>"></script>
-          <ins class="adsbygoogle"
-               style="display:block"
-               data-ad-client="<%= site.adsenseClient %>"
-               data-ad-slot="tips-sidebar"
-               data-ad-format="auto"></ins>
-          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        <% } else { %>
-          <div class="border border-dashed border-2 p-4 text-muted">
-            Advertisement
+      <!-- Quick Stats -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body text-center">
+          <h5 class="card-title text-primary">Success Stats</h5>
+          <div class="row">
+            <div class="col-6">
+              <div class="h4 text-primary mb-0">95%</div>
+              <small class="text-muted">Success Rate</small>
+            </div>
+            <div class="col-6">
+              <div class="h4 text-success mb-0">50+</div>
+              <small class="text-muted">Expert Guides</small>
+            </div>
           </div>
-        <% } %>
+        </div>
+      </div>
+      
+      <!-- Quick Actions -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Quick Actions</h5>
+          <div class="d-grid gap-2">
+            <a href="/scholarships" class="btn btn-primary btn-sm">
+              <i class="fas fa-search me-2"></i>Find Scholarships
+            </a>
+            <a href="/contact" class="btn btn-outline-primary btn-sm">
+              <i class="fas fa-question-circle me-2"></i>Ask Expert
+            </a>
+            <a href="/about" class="btn btn-outline-secondary btn-sm">
+              <i class="fas fa-info-circle me-2"></i>About Us
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Professional JavaScript for Tips Page Functionality -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Search functionality
+  const searchInput = document.getElementById('tips-search');
+  const searchBtn = document.getElementById('search-btn');
+  const tipCards = document.querySelectorAll('.tip-card');
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  const newsletterForm = document.getElementById('newsletter-form');
+  
+  // Debounced search function
+  let searchTimeout;
+  function performSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      const query = searchInput.value.toLowerCase().trim();
+      let visibleCount = 0;
+      
+      tipCards.forEach(card => {
+        const title = card.querySelector('.card-title a').textContent.toLowerCase();
+        const summary = card.querySelector('.card-text').textContent.toLowerCase();
+        const tags = card.getAttribute('data-tags').toLowerCase();
+        
+        if (query === '' || title.includes(query) || summary.includes(query) || tags.includes(query)) {
+          card.style.display = 'block';
+          card.classList.remove('fade-out');
+          card.classList.add('fade-in');
+          visibleCount++;
+        } else {
+          card.classList.remove('fade-in');
+          card.classList.add('fade-out');
+          setTimeout(() => {
+            if (card.classList.contains('fade-out')) {
+              card.style.display = 'none';
+            }
+          }, 300);
+        }
+      });
+      
+      // Show no results message if needed
+      updateNoResultsMessage(visibleCount);
+    }, 300);
+  }
+  
+  // Filter functionality
+  function filterByCategory(category) {
+    let visibleCount = 0;
+    
+    tipCards.forEach(card => {
+      const tags = card.getAttribute('data-tags').toLowerCase();
+      
+      if (category === 'all' || tags.includes(category.toLowerCase())) {
+        card.style.display = 'block';
+        card.classList.remove('fade-out');
+        card.classList.add('fade-in');
+        visibleCount++;
+      } else {
+        card.classList.remove('fade-in');
+        card.classList.add('fade-out');
+        setTimeout(() => {
+          if (card.classList.contains('fade-out')) {
+            card.style.display = 'none';
+          }
+        }, 300);
+      }
+    });
+    
+    updateNoResultsMessage(visibleCount);
+  }
+  
+  // Update active filter button
+  function updateActiveFilter(activeBtn) {
+    filterButtons.forEach(btn => btn.classList.remove('active'));
+    activeBtn.classList.add('active');
+  }
+  
+  // Show/hide no results message
+  function updateNoResultsMessage(visibleCount) {
+    let noResultsMsg = document.querySelector('.no-results-message');
+    if (visibleCount === 0) {
+      if (!noResultsMsg) {
+        noResultsMsg = document.createElement('div');
+        noResultsMsg.className = 'no-results-message col-12 text-center py-5';
+        noResultsMsg.innerHTML = `
+          <div class="text-muted">
+            <i class="fas fa-search display-4 mb-3"></i>
+            <h4>No tips found</h4>
+            <p>Try adjusting your search terms or browse all topics.</p>
+          </div>
+        `;
+        document.getElementById('tips-grid').appendChild(noResultsMsg);
+      }
+      noResultsMsg.style.display = 'block';
+    } else {
+      if (noResultsMsg) {
+        noResultsMsg.style.display = 'none';
+      }
+    }
+  }
+  
+  // Event listeners
+  if (searchInput) {
+    searchInput.addEventListener('input', performSearch);
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        performSearch();
+      }
+    });
+  }
+  
+  if (searchBtn) {
+    searchBtn.addEventListener('click', performSearch);
+  }
+  
+  filterButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const category = this.getAttribute('data-filter');
+      filterByCategory(category);
+      updateActiveFilter(this);
+      
+      // Clear search when filtering
+      if (searchInput) {
+        searchInput.value = '';
+      }
+    });
+  });
+  
+  // Newsletter form functionality
+  if (newsletterForm) {
+    newsletterForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const spinner = submitBtn.querySelector('.spinner-border');
+      const emailInput = this.querySelector('input[name="email"]');
+      const successAlert = document.getElementById('newsletter-success');
+      const errorAlert = document.getElementById('newsletter-error');
+      
+      // Show loading state
+      submitBtn.disabled = true;
+      spinner.classList.remove('d-none');
+      
+      try {
+        const formData = new FormData(this);
+        
+        const response = await fetch('/subscribe', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          successAlert.textContent = result.success;
+          successAlert.classList.remove('d-none');
+          errorAlert.classList.add('d-none');
+          emailInput.value = '';
+        } else {
+          throw new Error(result.error || 'Subscription failed');
+        }
+      } catch (error) {
+        errorAlert.textContent = error.message || 'Something went wrong. Please try again.';
+        errorAlert.classList.remove('d-none');
+        successAlert.classList.add('d-none');
+      } finally {
+        // Reset loading state
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+      }
+    });
+  }
+  
+  // Add smooth animations for cards
+  const style = document.createElement('style');
+  style.textContent = `
+    .tip-card {
+      transition: all 0.3s ease;
+    }
+    .tip-card.fade-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .tip-card.fade-out {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    .shadow-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .filter-btn.active {
+      background-color: var(--bs-primary);
+      color: white;
+      border-color: var(--bs-primary);
+    }
+    .featured-article {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .featured-article .card-body {
+      background: white;
+    }
+    .bg-gradient-primary {
+      background: linear-gradient(135deg, #0055FF 0%, #0040CC 100%);
+    }
+  `;
+  document.head.appendChild(style);
+});
+</script>
