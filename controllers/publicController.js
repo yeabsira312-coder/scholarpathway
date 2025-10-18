@@ -421,11 +421,15 @@ exports.scholarships = async (req, res) => {
     const paginatedScholarships = scholarships.slice(offset, offset + limit);
     const totalPages = Math.ceil(totalCount / limit);
 
+    // Calculate featured count
+    const featuredCount = scholarships.filter(s => s.featured).length;
+    
     res.render('pages/scholarships', {
       title: q ? `Search Results for "${q}" - ScholarPathway` : 'Scholarships - ScholarPathway',
       description: 'Browse scholarships and study abroad opportunities by country, degree level, and deadline.',
       scholarships: paginatedScholarships,
       countries,
+      featuredCount,
       filters: { q, country, degree, deadlineBefore },
       pagination: {
         currentPage: parseInt(page),
@@ -440,11 +444,15 @@ exports.scholarships = async (req, res) => {
     console.error('❌ Scholarships page error:', error);
     // Ultimate fallback with sample data
     const { q, country, degree, deadlineBefore, page = 1 } = req.query;
+    const fallbackScholarships = sampleScholarships.slice(0, 6);
+    const fallbackFeaturedCount = fallbackScholarships.filter(s => s.featured).length;
+    
     res.render('pages/scholarships', {
       title: q ? `Search Results for "${q}" - ScholarPathway` : 'Scholarships - ScholarPathway',
       description: 'Browse scholarships and study abroad opportunities.',
-      scholarships: sampleScholarships.slice(0, 6),
+      scholarships: fallbackScholarships,
       countries: countriesList.slice(0, 10).map(c => ({ code: c.code, name: c.name })),
+      featuredCount: fallbackFeaturedCount,
       filters: { q, country, degree, deadlineBefore },
       pagination: {
         currentPage: 1,
@@ -466,12 +474,10 @@ exports.scholarshipDetail = async (req, res) => {
     let related = [];
 
     // Check if it's a sample scholarship first
-    if (slug && slug.startsWith('sample-')) {
-      const sampleScholarship = sampleScholarships.find(s => s.slug === slug);
-      if (sampleScholarship) {
-        scholarship = sampleScholarship;
-        related = sampleScholarships.filter(s => s.slug !== slug && s.country_code === scholarship.country_code).slice(0, 3);
-      }
+    const sampleScholarship = sampleScholarships.find(s => s.slug === slug);
+    if (sampleScholarship) {
+      scholarship = sampleScholarship;
+      related = sampleScholarships.filter(s => s.slug !== slug && s.country_code === scholarship.country_code).slice(0, 3);
     }
 
     // Try database if Supabase is configured and not found in samples
