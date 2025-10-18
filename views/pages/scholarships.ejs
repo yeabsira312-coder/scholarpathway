@@ -1,4 +1,5 @@
 <% const query = (typeof filters !== 'undefined' && filters) ? filters : (typeof query !== 'undefined' ? query : {}); %>
+<% const totalCountLocal = (typeof pagination !== 'undefined' && pagination && typeof pagination.totalCount !== 'undefined') ? pagination.totalCount : (Array.isArray(scholarships) ? scholarships.length : 0); %>
 <!-- Page Header -->
 <section class="py-5 bg-light">
   <div class="container">
@@ -98,8 +99,8 @@
           <div>
             <% if (scholarships && scholarships.length > 0) { %>
               <h5 class="mb-0">
-                <%= totalCount || scholarships.length %> 
-                <%= (totalCount === 1) ? 'scholarship' : 'scholarships' %> found
+                <%= totalCountLocal %> 
+                <%= (totalCountLocal === 1) ? 'scholarship' : 'scholarships' %> found
               </h5>
               <% if (query.q) { %>
                 <small class="text-muted">for "<%= query.q %>"</small>
@@ -265,7 +266,7 @@
             <ul class="list-unstyled mb-0">
               <li class="d-flex justify-content-between">
                 <span>Total Scholarships:</span>
-                <strong><%= totalCount || 0 %></strong>
+                <strong><%= (typeof totalCountLocal !== 'undefined' ? totalCountLocal : 0) %></strong>
               </li>
               <li class="d-flex justify-content-between">
                 <span>Countries:</span>

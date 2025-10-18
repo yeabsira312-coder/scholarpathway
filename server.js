@@ -35,7 +35,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https://i.imgur.com", "https://images.unsplash.com", "https://pagead2.googlesyndication.com", "https://www.google-analytics.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "https://api.resend.com"],
       frameSrc: ["'self'", "https://googleads.g.doubleclick.net"]
     }
   }

@@ -3,6 +3,7 @@ const { validationResult } = require('express-validator');
 const { clean } = require('../utils/sanitize');
 const { getPagination } = require('../utils/pagination');
 const dayjs = require('dayjs');
+const { sendEmail } = require('../utils/email');
 
 // Home page
 exports.home = async (req, res) => {
@@ -449,6 +450,18 @@ exports.contactSubmit = async (req, res) => {
 
     if (error) throw error;
 
+    // Fire-and-forget admin notification email
+    try {
+      const adminTo = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM;
+      if (adminTo) {
+        await sendEmail({
+          to: adminTo,
+          subject: 'New contact message from ScholarPathway',
+          html: `<p><strong>Name:</strong> ${clean(name)}</p><p><strong>Email:</strong> ${email}</p><p>${clean(message)}</p>`
+        });
+      }
+    } catch (e) { console.error('Contact email error:', e.message); }
+
     res.render('pages/contact', {
       title: 'Contact Us - ScholarPathway',
       description: 'Get in touch with ScholarPathway.',
@@ -478,14 +491,25 @@ exports.subscribe = async (req, res) => {
 
     const { error } = await supabase
       .from('subscribers')
-      .upsert([{
-        email: email.toLowerCase().trim(),
-        source: source || 'website'
-      }], { onConflict: 'email' });
+      .upsert([
+        {
+          email: email.toLowerCase().trim(),
+          source: source || 'website'
+        }
+      ], { onConflict: 'email' });
 
     if (error && !error.message.includes('duplicate')) {
       throw error;
     }
+
+    // Send welcome email (optional if email env vars configured)
+    try {
+      await sendEmail({
+        to: email.toLowerCase().trim(),
+        subject: 'Welcome to ScholarPathway',
+        html: `<p>Thanks for subscribing to ScholarPathway! 🎓</p><p>You will receive updates on new scholarships and tips.</p>`
+      });
+    } catch (e) { console.error('Welcome email error:', e.message); }
 
     res.json({ success: 'Successfully subscribed to newsletter!' });
   } catch (error) {
