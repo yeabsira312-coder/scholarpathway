@@ -204,7 +204,29 @@ exports.scholarships = async (req, res) => {
     });
   } catch (error) {
     console.error('Scholarships page error:', error);
-    res.status(500).render('pages/500', { title: 'Server Error' });
+    // Graceful fallback: render empty results instead of 500
+    try {
+      const { q, country, degree, deadlineBefore, page = 1 } = req.query;
+      const { countriesList } = require('../utils/countries');
+      const countries = countriesList.map(c => ({ code: c.code, name: c.name }));
+      return res.render('pages/scholarships', {
+        title: q ? `Search Results for "${q}"` : 'Scholarships - ScholarPathway',
+        description: 'Browse scholarships and study abroad opportunities by country, degree level, and deadline.',
+        scholarships: [],
+        countries,
+        filters: { q, country, degree, deadlineBefore },
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: 0,
+          totalCount: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        currentUrl: req.originalUrl
+      });
+    } catch (e) {
+      return res.status(500).render('pages/500', { title: 'Server Error' });
+    }
   }
 };
 
@@ -427,7 +449,17 @@ exports.countriesFilter = async (req, res) => {
       .single();
 
     if (countryError || !country) {
-      return res.status(404).render('pages/404', { title: 'Country Not Found' });
+      // Fallback to static list so page still works
+      const fromList = countriesList.find(c => c.code.toUpperCase() === code.toUpperCase());
+      const fallbackCountry = fromList || { code: code.toUpperCase(), name: code.toUpperCase() };
+      return res.render('pages/country-scholarships', {
+        title: `${fallbackCountry.name} Scholarships - ScholarPathway`,
+        description: `Find scholarships and study opportunities in ${fallbackCountry.name}.`,
+        country: { code: fallbackCountry.code, name: fallbackCountry.name, flag: getCountryFlag(fallbackCountry.code) },
+        scholarships: [],
+        pagination: { currentPage: 1, totalPages: 0, totalCount: 0, hasNext: false, hasPrev: false },
+        currentUrl: req.originalUrl
+      });
     }
 
     // Get scholarships for this country

@@ -38,9 +38,41 @@ router.get('/sitemap.xml', publicController.sitemap);
 router.get('/robots.txt', publicController.robots);
 router.get('/feed.xml', publicController.feed);
 
-// Redirect footer links to About for now (avoid 404s)
-router.get('/help', (req, res) => res.redirect(301, '/about'));
-router.get('/privacy', (req, res) => res.redirect(301, '/about'));
-router.get('/terms', (req, res) => res.redirect(301, '/about'));
+// Footer links -> external URLs via env; fallback to static pages
+router.get('/help', (req, res) => {
+  const url = process.env.HELP_URL;
+  if (url) {
+    return res.redirect(301, url);
+  }
+  // Fallback to local help page
+  res.render('pages/help', { 
+    title: 'Help Center',
+    description: 'Get help with scholarships and using ScholarPathway'
+  });
+});
+
+router.get('/privacy', (req, res) => {
+  const url = process.env.PRIVACY_URL;
+  if (url) {
+    return res.redirect(301, url);
+  }
+  // Fallback to local privacy page
+  res.render('pages/privacy', { 
+    title: 'Privacy Policy',
+    description: 'Our privacy policy and data handling practices'
+  });
+});
+
+router.get('/terms', (req, res) => {
+  const url = process.env.TERMS_URL;
+  if (url) {
+    return res.redirect(301, url);
+  }
+  // Fallback to local terms page
+  res.render('pages/terms', { 
+    title: 'Terms of Service',
+    description: 'Terms and conditions for using ScholarPathway'
+  });
+});
 
 module.exports = router;
