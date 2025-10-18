@@ -33,17 +33,29 @@ exports.home = async (req, res) => {
     if (countriesError) throw countriesError;
 
     // Process countries with counts
-    const countriesWithCounts = countries.map(country => ({
+    const countriesWithCounts = countries?.map(country => ({
       ...country,
       count: country.scholarships ? country.scholarships.length : 0,
       flag: getCountryFlag(country.code)
-    }));
+    })) || [];
+
+    // Get latest posts for home page
+    const { data: latestPosts, error: postsError } = await supabase
+      .from('posts')
+      .select('id, slug, title, summary, tags, featured, created_at')
+      .eq('is_published', true)
+      .order('featured', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(3);
+
+    if (postsError) console.error('Posts error:', postsError);
 
     res.render('pages/home', {
       title: 'Find Your Perfect Scholarship - ScholarPathway',
       description: 'Discover scholarships and study abroad opportunities worldwide. Search thousands of scholarships for students.',
       featuredScholarships: scholarships || [],
-      countries: countriesWithCounts || [],
+      countries: countriesWithCounts,
+      latestPosts: latestPosts || [],
       currentUrl: req.originalUrl
     });
   } catch (error) {
