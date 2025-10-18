@@ -1,53 +1,88 @@
-// Supabase setup
-const { createClient } = require('@supabase/supabase-js');
+// =============================
+//  Core and third-party imports
+// =============================
+import { createClient } from '@supabase/supabase-js';
+import express from 'express';
+import path from 'path';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
+import cookieSession from 'cookie-session';
+import csrf from 'csurf';
+import methodOverride from 'method-override';
+
+// =============================
+//  Local imports (routes)
+// =============================
+import publicRoutes from './routes/public.js';
+import adminRoutes from './routes/admin.js';
+
+// =============================
+//  ESM dirname fix
+// =============================
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// =============================
+//  Supabase setup
+// =============================
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Core modules
-const express = require('express');
-const path = require('path');
-const helmet = require('helmet');
-const compression = require('compression');
-const morgan = require('morgan');
-const cookieSession = require('cookie-session');
-const csrf = require('csurf');
-const methodOverride = require('method-override');
-
-// Routes
-const publicRoutes = require('./routes/public');
-const adminRoutes = require('./routes/admin');
-
+// =============================
+//  Express app setup
+// =============================
 const app = express();
 app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Body parsing
+// =============================
+//  Middleware
+// =============================
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride('_method'));
-
-// Security & performance
 app.use(compression());
 app.use(helmet({
   contentSecurityPolicy: {
     useDefaults: true,
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://www.googletagmanager.com", "https://pagead2.googlesyndication.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https://i.imgur.com", "https://images.unsplash.com", "https://pagead2.googlesyndication.com", "https://www.google-analytics.com"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+        "https://www.googletagmanager.com",
+        "https://pagead2.googlesyndication.com"
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+        "https://fonts.googleapis.com"
+      ],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "https://i.imgur.com",
+        "https://images.unsplash.com",
+        "https://pagead2.googlesyndication.com",
+        "https://www.google-analytics.com"
+      ],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       connectSrc: ["'self'"],
       frameSrc: ["'self'", "https://googleads.g.doubleclick.net"]
     }
   }
 }));
-
 app.use(morgan('combined'));
 
-// Session & CSRF
+// =============================
+//  Sessions & CSRF protection
+// =============================
 app.use(cookieSession({
   name: 'sp.sid',
   keys: [process.env.SESSION_SECRET || 'dev-secret-change-in-production'],
@@ -71,24 +106,31 @@ app.use((req, res, next) => {
   next();
 });
 
-// Static files
+// =============================
+//  Static files
+// =============================
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 
-// Routes
+// =============================
+//  Routes
+// =============================
 app.use('/', publicRoutes);
 app.use('/admin', adminRoutes);
 
-// 404
+// =============================
+//  Error pages
+// =============================
 app.use((req, res) => {
   res.status(404).render('pages/404', { title: 'Page Not Found' });
 });
 
-// 500
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).render('pages/500', { title: 'Server Error' });
 });
 
-// Start server
+// =============================
+//  Start the server
+// =============================
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`ScholarPathway listening on ${port}`));
+app.listen(port, () => console.log(`✅ ScholarPathway running on port ${port}`));
