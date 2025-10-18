@@ -305,7 +305,9 @@ exports.home = async (req, res) => {
 exports.scholarships = async (req, res) => {
   try {
     const { q, country, degree, deadlineBefore, page = 1 } = req.query;
-    const { offset, limit } = getPagination(page, 12);
+    const paginationData = getPagination(page, 12);
+    const { offset } = paginationData;
+    const limit = paginationData.pageSize;
     
     let scholarships = [...sampleScholarships];
     let totalCount = sampleScholarships.length;
@@ -536,7 +538,9 @@ exports.scholarshipDetail = async (req, res) => {
 exports.tips = async (req, res) => {
   try {
     const { page = 1 } = req.query;
-    const { offset, limit } = getPagination(page, 10);
+    const paginationData = getPagination(page, 10);
+    const { offset } = paginationData;
+    const limit = paginationData.pageSize;
     
     let posts = [...samplePosts];
     let totalCount = samplePosts.length;
@@ -769,7 +773,9 @@ exports.countriesFilter = async (req, res) => {
   try {
     const { code } = req.params;
     const { page = 1 } = req.query;
-    const { offset, limit } = getPagination(page, 12);
+    const paginationData = getPagination(page, 12);
+    const { offset } = paginationData;
+    const limit = paginationData.pageSize;
 
     // Get country info
     const { data: country, error: countryError } = await supabase
