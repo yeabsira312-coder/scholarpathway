@@ -55,9 +55,19 @@ async function handleNewsletterSubmission(e) {
   e.preventDefault();
   
   const form = e.target;
-  const formData = new FormData(form);
   const submitBtn = form.querySelector('button[type="submit"]');
   const originalText = submitBtn.textContent;
+  
+  // Get form data as URL-encoded string
+  const formData = new FormData(form);
+  const data = new URLSearchParams(formData);
+  
+  // Add CSRF token if available
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                   document.querySelector('input[name="_csrf"]')?.value;
+  if (csrfToken) {
+    data.append('_csrf', csrfToken);
+  }
   
   try {
     submitBtn.disabled = true;
@@ -65,19 +75,29 @@ async function handleNewsletterSubmission(e) {
     
     const response = await fetch('/subscribe', {
       method: 'POST',
-      body: formData
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: data
     });
     
-    const result = await response.json();
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      result = { error: 'Invalid server response' };
+    }
     
     if (response.ok) {
-      showMessage('success', 'Successfully subscribed to newsletter!');
+      showMessage('success', result.success || 'Successfully subscribed to newsletter! 🎉');
       form.reset();
     } else {
       showMessage('error', result.error || 'Subscription failed. Please try again.');
     }
   } catch (error) {
-    showMessage('error', 'Network error. Please check your connection.');
+    console.error('Newsletter submission error:', error);
+    showMessage('error', 'Connection failed. Please check your internet and try again.');
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
@@ -89,9 +109,19 @@ async function handleContactSubmission(e) {
   e.preventDefault();
   
   const form = e.target;
-  const formData = new FormData(form);
   const submitBtn = form.querySelector('button[type="submit"]');
   const originalText = submitBtn.textContent;
+  
+  // Get form data as URL-encoded string
+  const formData = new FormData(form);
+  const data = new URLSearchParams(formData);
+  
+  // Add CSRF token if available
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                   document.querySelector('input[name="_csrf"]')?.value;
+  if (csrfToken) {
+    data.append('_csrf', csrfToken);
+  }
   
   try {
     submitBtn.disabled = true;
@@ -99,19 +129,29 @@ async function handleContactSubmission(e) {
     
     const response = await fetch('/contact', {
       method: 'POST',
-      body: formData
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: data
     });
     
-    const result = await response.json();
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      result = { error: 'Invalid server response' };
+    }
     
     if (response.ok) {
-      showMessage('success', 'Message sent successfully! We\'ll get back to you soon.');
+      showMessage('success', result.success || 'Message sent successfully! We\'ll get back to you within 24-48 hours. 🚀');
       form.reset();
     } else {
       showMessage('error', result.error || 'Failed to send message. Please try again.');
     }
   } catch (error) {
-    showMessage('error', 'Network error. Please check your connection.');
+    console.error('Contact form submission error:', error);
+    showMessage('error', 'Connection failed. Please check your internet and try again.');
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
