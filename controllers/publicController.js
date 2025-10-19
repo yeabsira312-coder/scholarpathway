@@ -3,7 +3,7 @@ const { validationResult } = require('express-validator');
 const { clean } = require('../utils/sanitize');
 const { getPagination } = require('../utils/pagination');
 const dayjs = require('dayjs');
-const { sendEmail } = require('../utils/email');
+const { sendEmail, ADMIN_EMAIL } = require('../utils/email');
 const { countriesList } = require('../utils/countries');
 // Load database with error handling
 let scholarshipsDatabase, studyTipsDatabase;
@@ -839,10 +839,9 @@ exports.contactSubmit = async (req, res) => {
 
     // Send professional admin notification email
     try {
-      const adminTo = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || 'yeab@scholarpathway.com';
-      if (adminTo) {
+      if (ADMIN_EMAIL) {
         const emailResult = await sendEmail({
-          to: adminTo,
+          to: ADMIN_EMAIL,
           subject: '📬 New Contact Message from ScholarPathway - Urgent Response Needed!',
           html: `
             <!DOCTYPE html>
