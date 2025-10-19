@@ -18,7 +18,13 @@
             </div>
           <% }) %>
         <% } else { %>
-          <p class="text-muted">No scholarships found.</p>
+          <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm p-4 text-center">
+              <h4 class="mb-2">No scholarships listed yet for <%= (country && country.name) || 'this country' %>.</h4>
+              <p class="text-muted mb-3">We're working to add more opportunities. You can suggest a scholarship via our <a href="/contact">contact form</a> or browse global scholarships <a href="/scholarships">here</a>.</p>
+              <a href="/scholarships" class="btn btn-primary">Browse all scholarships</a>
+            </div>
+          </div>
         <% } %>
       </div>
 

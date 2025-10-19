@@ -73,12 +73,22 @@ async function handleNewsletterSubmission(e) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Subscribing...';
     
-    // Simple fetch without complex headers
-    const formData = new FormData(form);
-    
+    // Convert form fields to application/x-www-form-urlencoded (Express parses this by default)
+    const params = new URLSearchParams();
+    for (const pair of new FormData(form)) {
+      params.append(pair[0], pair[1]);
+    }
+
+    // Include CSRF token if present on page
+    if (!params.has('_csrf')) {
+      const token = document.querySelector('input[name="_csrf"]');
+      if (token) params.append('_csrf', token.value);
+    }
+
     const response = await fetch('/subscribe', {
       method: 'POST',
-      body: formData
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
     });
     
     if (response.ok) {
@@ -118,12 +128,21 @@ async function handleContactSubmission(e) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
     
-    // Simple fetch without complex headers
-    const formData = new FormData(form);
-    
+    // Convert to application/x-www-form-urlencoded
+    const params = new URLSearchParams();
+    for (const pair of new FormData(form)) {
+      params.append(pair[0], pair[1]);
+    }
+
+    if (!params.has('_csrf')) {
+      const token = document.querySelector('input[name="_csrf"]');
+      if (token) params.append('_csrf', token.value);
+    }
+
     const response = await fetch('/contact', {
       method: 'POST',
-      body: formData
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
     });
     
     if (response.ok) {

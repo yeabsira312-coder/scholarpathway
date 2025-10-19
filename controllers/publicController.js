@@ -609,16 +609,37 @@ exports.countries = async (req, res) => {
       }
     }
 
-    // Ensure all countries have proper counts and flags from mega database
+    // Ensure all countries are listed (professional sites show all countries)
+    // Build a map of scholarship counts from the sample data
+    const countsMap = {};
+    sampleScholarships.forEach(s => {
+      const code = s.country_code ? String(s.country_code).toUpperCase() : 'XX';
+      countsMap[code] = (countsMap[code] || 0) + 1;
+    });
+
+    // Merge counts into the countries list and show zeros when none
     countriesWithCounts = countriesWithCounts.map(country => {
-      const scholarshipsForCountry = sampleScholarships.filter(s => s.country_code === country.code);
+      const code = String(country.code).toUpperCase();
+      const count = countsMap[code] || 0;
       return {
         ...country,
-        count: scholarshipsForCountry.length || 0,
-        scholarship_count: scholarshipsForCountry.length || 0,
-        flag: country.flag || getCountryFlag(country.code)
+        count,
+        scholarship_count: count,
+        flag: country.flag || getCountryFlag(code)
       };
-    }).filter(country => country.count > 0); // Only show countries with scholarships
+    });
+
+    // Also ensure any countries from the master list that were not in countriesWithCounts are included
+    const allCountries = countriesList.map(c => ({ code: c.code, name: c.name }));
+    allCountries.forEach(c => {
+      if (!countriesWithCounts.find(x => x.code === c.code)) {
+        const code = String(c.code).toUpperCase();
+        countriesWithCounts.push({ code: c.code, name: c.name, count: countsMap[code] || 0, scholarship_count: countsMap[code] || 0, flag: getCountryFlag(code) });
+      }
+    });
+
+    // Sort alphabetically by name
+    countriesWithCounts = countriesWithCounts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     res.render('pages/countries', {
       title: 'Study Destinations - ScholarPathway',
