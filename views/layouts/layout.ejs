@@ -31,7 +31,6 @@
   <!-- Custom CSS -->
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/animations.css">
-  <link rel="stylesheet" href="/css/chatbot.css">
   
   <!-- Favicon and Icons -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -95,11 +94,6 @@
             <a class="nav-link" href="/contact">Contact</a>
           </li>
         </ul>
-        <!-- Search in navbar -->
-        <form class="d-flex search-bar me-3" method="GET" action="/scholarships" role="search">
-          <input type="text" name="q" class="form-control me-2" placeholder="Search scholarships, countries, universities..." aria-label="Search" value="<%= (filters && filters.q) ? filters.q : '' %>">
-          <button class="btn btn-outline-primary" type="submit">Search</button>
-        </form>
         
         <ul class="navbar-nav">
           <% if (user) { %>
@@ -204,10 +198,9 @@
   <script src="https://kit.fontawesome.com/your-kit-id.js" crossorigin="anonymous"></script>
   
   <!-- Custom JS -->
-  <script src="/js/main.js" defer></script>
-  <script src="/js/animations.js" defer></script>
-  <script src="/js/form-fallback.js" defer></script>
-  <script src="/js/chatbot.js" defer></script>
+  <script src="/js/main.js"></script>
+  <script src="/js/animations.js"></script>
+  <script src="/js/form-fallback.js"></script>
   
   <script>
   // Footer Newsletter Subscription

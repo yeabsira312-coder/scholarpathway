@@ -73,18 +73,12 @@ async function handleNewsletterSubmission(e) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Subscribing...';
     
-    // Send as application/x-www-form-urlencoded so server can parse with express.urlencoded
+    // Simple fetch without complex headers
     const formData = new FormData(form);
-    const params = new URLSearchParams();
-    for (const pair of formData.entries()) params.append(pair[0], pair[1]);
-
+    
     const response = await fetch('/subscribe', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: params.toString()
+      body: formData
     });
     
     if (response.ok) {
@@ -124,18 +118,12 @@ async function handleContactSubmission(e) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
     
-    // Send form as application/x-www-form-urlencoded so server can parse with express.urlencoded
+    // Simple fetch without complex headers
     const formData = new FormData(form);
-    const params = new URLSearchParams();
-    for (const pair of formData.entries()) params.append(pair[0], pair[1]);
-
+    
     const response = await fetch('/contact', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: params.toString()
+      body: formData
     });
     
     if (response.ok) {
