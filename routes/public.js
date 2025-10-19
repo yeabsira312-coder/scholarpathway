@@ -39,6 +39,8 @@ router.post('/subscribe', formRateLimit, [
 router.get('/sitemap.xml', publicController.sitemap);
 router.get('/robots.txt', publicController.robots);
 router.get('/feed.xml', publicController.feed);
+// Embedded chatbot API (lightweight fallback)
+router.post('/api/chat', publicController.chatApi);
 
 // Footer links -> external URLs via env; fallback to static pages
 router.get('/help', (req, res) => {

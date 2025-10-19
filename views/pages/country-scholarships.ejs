@@ -1,5 +1,17 @@
 <section class="container py-5">
-  <h1 class="mb-4"><%= (typeof country !== 'undefined' && country ? country.name : 'Country') %> Scholarships</h1>
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <% if (typeof prevCountry !== 'undefined' && prevCountry) { %>
+        <a class="btn btn-outline-secondary btn-sm me-2" href="/countries/<%= prevCountry.code.toLowerCase() %>">&larr; <%= prevCountry.name %></a>
+      <% } %>
+    </div>
+    <h1 class="mb-0"><%= (typeof country !== 'undefined' && country ? country.name : 'Country') %> Scholarships</h1>
+    <div>
+      <% if (typeof nextCountry !== 'undefined' && nextCountry) { %>
+        <a class="btn btn-outline-secondary btn-sm ms-2" href="/countries/<%= nextCountry.code.toLowerCase() %>"><%= nextCountry.name %> &rarr;</a>
+      <% } %>
+    </div>
+  </div>
 
   <div class="row">
     <div class="col-lg-9">

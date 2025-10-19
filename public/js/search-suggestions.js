@@ -109,9 +109,19 @@ class SearchSuggestions {
   }
   
   selectSuggestion(value) {
+    // Fill input and submit search by redirecting to scholarships page
     this.input.value = value;
     this.hideSuggestions();
-    this.input.focus();
+    // If the input is inside a form, submit it; otherwise, redirect
+    const form = this.input.closest('form');
+    if (form) {
+      // Append q param and submit
+      const url = new URL(form.action || '/scholarships', window.location.origin);
+      url.searchParams.set('q', value);
+      window.location.href = url.toString();
+    } else {
+      window.location.href = `/scholarships?q=${encodeURIComponent(value)}`;
+    }
   }
   
   handleKeydown(e) {

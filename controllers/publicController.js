@@ -18,24 +18,63 @@ try {
   studyTipsDatabase = [];
 }
 
+// Try to also load the large/mega dataset (if present) and merge
+try {
+  const mega = require('../data/mega-scholarships');
+  const megaList = mega.scholarshipsDatabase || [];
+  if (megaList && megaList.length > 0) {
+    // Merge and deduplicate by slug (prefer existing scholarshipsDatabase entries)
+    const bySlug = new Map();
+    scholarshipsDatabase.forEach(s => { if (s && s.slug) bySlug.set(s.slug, s); });
+    megaList.forEach(s => { if (s && s.slug && !bySlug.has(s.slug)) bySlug.set(s.slug, s); });
+    scholarshipsDatabase = Array.from(bySlug.values());
+    console.log(`ℹ️  Merged mega dataset, total scholarships: ${scholarshipsDatabase.length}`);
+  }
+} catch (err) {
+  // Not critical if mega dataset not present
+  // console.warn('⚠️  Mega dataset not found or failed to load:', err.message);
+}
 // Use comprehensive scholarship database as fallback
-const sampleScholarships = scholarshipsDatabase;
+let sampleScholarships = scholarshipsDatabase;
 
 // Use comprehensive study tips database as fallback
 const samplePosts = studyTipsDatabase;
 
-// Generate countries with real scholarship counts from mega database (only countries with scholarships)
-const sampleCountries = countriesList.slice(0, 25).map((country) => {
-  const scholarshipsForCountry = sampleScholarships.filter(s => s.country_code === country.code);
-  return {
-    code: country.code,
-    name: country.name,
-    scholarships: scholarshipsForCountry,
-    scholarship_count: scholarshipsForCountry.length || 0,
-    count: scholarshipsForCountry.length || 0,
-    flag: getCountryFlag(country.code)
-  };
-}).filter(country => country.count > 0); // Only show countries with scholarships
+// Build sample countries and ensure we include every country that appears in the data
+function buildSamplesFromData(scholarshipsData) {
+  const samples = Array.isArray(scholarshipsData) ? scholarshipsData.slice() : [];
+
+  // Normalize country codes to upper-case
+  samples.forEach(s => { if (s && s.country_code) s.country_code = String(s.country_code).toUpperCase(); });
+
+  // Gather all country codes present in the data
+  const codesFromData = Array.from(new Set(samples.map(s => s.country_code).filter(Boolean)));
+
+  // Build a lookup of country names from the static countries list and fallback to code
+  const countryNameLookup = {};
+  countriesList.forEach(c => { countryNameLookup[c.code] = c.name; });
+  codesFromData.forEach(code => { if (!countryNameLookup[code]) countryNameLookup[code] = code; });
+
+  // Create the countries array with counts and flags, only include countries with at least one scholarship
+  const sampleCountriesArr = codesFromData.map(code => {
+    const scholarshipsForCountry = samples.filter(s => s.country_code === code);
+    return {
+      code,
+      name: countryNameLookup[code] || code,
+      scholarships: scholarshipsForCountry,
+      scholarship_count: scholarshipsForCountry.length || 0,
+      count: scholarshipsForCountry.length || 0,
+      flag: getCountryFlag(code)
+    };
+  }).filter(c => c.count > 0).sort((a, b) => a.name.localeCompare(b.name));
+
+  return { samples, sampleCountriesArr };
+}
+
+// Initialize samples using the loaded database
+const built = buildSamplesFromData(sampleScholarships);
+sampleScholarships = built.samples;
+const sampleCountries = built.sampleCountriesArr;
 
 // Helper function to get country flag emoji
 function getCountryFlag(countryCode) {
@@ -670,6 +709,11 @@ exports.countriesFilter = async (req, res) => {
     let country = fallbackCountry;
     let scholarships = paginatedScholarships;
 
+  // Determine prev/next country for navigation using sampleCountries
+  const countryIndex = sampleCountries.findIndex(c => c.code === code.toUpperCase());
+  const prevCountry = countryIndex > 0 ? sampleCountries[countryIndex - 1] : null;
+  const nextCountry = (countryIndex >= 0 && countryIndex < sampleCountries.length - 1) ? sampleCountries[countryIndex + 1] : null;
+
     // Try to fetch real data if Supabase is configured
     if (isConfigured && supabase) {
       try {
@@ -724,6 +768,8 @@ exports.countriesFilter = async (req, res) => {
               hasNext: parseInt(page) < dbTotalPages,
               hasPrev: parseInt(page) > 1
             },
+            prevCountry,
+            nextCountry,
             currentUrl: req.originalUrl
           });
         }
@@ -748,6 +794,8 @@ exports.countriesFilter = async (req, res) => {
         hasNext: parseInt(page) < totalPages,
         hasPrev: parseInt(page) > 1
       },
+      prevCountry,
+      nextCountry,
       currentUrl: req.originalUrl
     });
   } catch (error) {
@@ -1233,90 +1281,52 @@ exports.subscribe = async (req, res) => {
 exports.sitemap = async (req, res) => {
   try {
     const baseUrl = process.env.SITE_URL || 'https://scholarpathway.glitch.me';
-    
-    const [scholarshipsResult, postsResult, countriesResult] = await Promise.all([
-      supabase
-        .from('scholarships')
-        .select('slug, updated_at')
-        .eq('is_published', true),
-      supabase
-        .from('posts')
-        .select('slug, updated_at')
-        .eq('is_published', true),
-      supabase
-        .from('countries')
-        .select('code')
-    ]);
+    // If Supabase is configured, prefer live DB values; otherwise use in-memory sample data
+    let scholarshipsList = [];
+    let postsList = [];
+    let countriesListForSitemap = [];
 
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${baseUrl}/</loc>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/scholarships</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/tips</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/countries</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/about</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/contact</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>`;
+    if (isConfigured && supabase) {
+      try {
+        const [scholarshipsResult, postsResult, countriesResult] = await Promise.all([
+          supabase.from('scholarships').select('slug, updated_at').eq('is_published', true),
+          supabase.from('posts').select('slug, updated_at').eq('is_published', true),
+          supabase.from('countries').select('code')
+        ]);
+        scholarshipsList = (scholarshipsResult && scholarshipsResult.data) ? scholarshipsResult.data : [];
+        postsList = (postsResult && postsResult.data) ? postsResult.data : [];
+        countriesListForSitemap = (countriesResult && countriesResult.data) ? countriesResult.data : [];
+      } catch (err) {
+        console.warn('Sitemap DB fetch failed, using fallback data:', err.message);
+      }
+    }
+
+    // Use sample in-memory data when DB is not configured or fetch failed
+    if (!scholarshipsList.length) {
+      scholarshipsList = (sampleScholarships || []).map(s => ({ slug: s.slug, updated_at: s.updated_at || s.created_at || new Date().toISOString() }));
+    }
+    if (!postsList.length) {
+      postsList = (samplePosts || []).map(p => ({ slug: p.slug, updated_at: p.updated_at || p.created_at || new Date().toISOString() }));
+    }
+    if (!countriesListForSitemap.length) {
+      countriesListForSitemap = (sampleCountries || []).map(c => ({ code: c.code }));
+    }
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url>\n    <loc>${baseUrl}/</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n  <url>\n    <loc>${baseUrl}/scholarships</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n  <url>\n    <loc>${baseUrl}/tips</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n  <url>\n    <loc>${baseUrl}/countries</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n  <url>\n    <loc>${baseUrl}/about</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>\n  <url>\n    <loc>${baseUrl}/contact</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>`;
 
     // Add scholarships
-    if (scholarshipsResult.data) {
-      for (const scholarship of scholarshipsResult.data) {
-        xml += `
-  <url>
-    <loc>${baseUrl}/scholarships/${scholarship.slug}</loc>
-    <lastmod>${scholarship.updated_at}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-      }
+    for (const scholarship of scholarshipsList) {
+      xml += `\n  <url>\n    <loc>${baseUrl}/scholarships/${scholarship.slug}</loc>\n    <lastmod>${scholarship.updated_at}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`;
     }
 
     // Add posts
-    if (postsResult.data) {
-      for (const post of postsResult.data) {
-        xml += `
-  <url>
-    <loc>${baseUrl}/tips/${post.slug}</loc>
-    <lastmod>${post.updated_at}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>`;
-      }
+    for (const post of postsList) {
+      xml += `\n  <url>\n    <loc>${baseUrl}/tips/${post.slug}</loc>\n    <lastmod>${post.updated_at}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
     }
 
     // Add countries
-    if (countriesResult.data) {
-      for (const country of countriesResult.data) {
-        xml += `
-  <url>
-    <loc>${baseUrl}/countries/${country.code.toLowerCase()}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>`;
-      }
+    for (const country of countriesListForSitemap) {
+      xml += `\n  <url>\n    <loc>${baseUrl}/countries/${country.code.toLowerCase()}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
     }
 
     xml += '\n</urlset>';
@@ -1338,6 +1348,51 @@ exports.robots = (req, res) => {
 Allow: /
 
 Sitemap: ${baseUrl}/sitemap.xml`);
+};
+
+// Lightweight Chat API for embedded assistant
+exports.chatApi = async (req, res) => {
+  try {
+    const { message } = req.body || {};
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    // If there's a configured AI endpoint (e.g., proxy or serverless), forward the request
+    const aiEndpoint = process.env.AI_API_ENDPOINT;
+    if (aiEndpoint) {
+      try {
+        const fetch = require('node-fetch');
+        const aiRes = await fetch(aiEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        const json = await aiRes.json();
+        return res.json({ reply: json.reply || json.output || 'No reply' });
+      } catch (err) {
+        console.warn('AI proxy failed:', err.message);
+      }
+    }
+
+    // Simple fallback rules for common questions
+    const q = message.toLowerCase();
+    if (q.includes('deadline') || q.includes('apply') || q.includes('application')) {
+      return res.json({ reply: 'Deadlines vary by scholarship. Use the filters on the Scholarships page or open a country page to see specific deadlines. You can also search by "deadline" on the scholarships page.' });
+    }
+    if (q.includes('how to apply') || q.includes('essay') || q.includes('requirements')) {
+      return res.json({ reply: 'Focus on your academic achievements, tailor your essays to the scholarship provider, and provide strong references. Visit our Tips section for detailed guidance.' });
+    }
+    if (q.includes('country') || q.includes('study in')) {
+      return res.json({ reply: 'Open the Countries page to browse scholarships by destination. Each country page lists scholarships and links to official provider pages.' });
+    }
+
+    // Generic helpful response
+    return res.json({ reply: 'Hi — I can help with scholarships, deadlines, and application tips. Try asking about a country (e.g., "scholarships in Canada"), a university, or "how to apply".' });
+  } catch (error) {
+    console.error('Chat API error:', error);
+    res.status(500).json({ error: 'Assistant error' });
+  }
 };
 
 // RSS Feed

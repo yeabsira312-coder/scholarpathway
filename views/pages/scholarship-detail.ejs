@@ -20,7 +20,9 @@
           <div>
             <h1 class="h2 mb-3"><%= scholarship.title %></h1>
             <div class="d-flex flex-wrap gap-2 mb-3">
-              <span class="badge bg-primary"><%= scholarship.countries?.name || scholarship.country_code %></span>
+              <a href="/countries/<%= (scholarship.country_code || (scholarship.countries && scholarship.countries.name) || '').toLowerCase() %>" class="text-decoration-none">
+                <span class="badge bg-primary"><%= scholarship.countries?.name || scholarship.country_code %></span>
+              </a>
               <% if (scholarship.featured) { %>
                 <span class="badge bg-warning"><i class="fas fa-star me-1"></i>Featured</span>
               <% } %>
