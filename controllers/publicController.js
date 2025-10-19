@@ -837,26 +837,112 @@ exports.contactSubmit = async (req, res) => {
       }
     }
 
-    // Send admin notification email
+    // Send professional admin notification email
     try {
-      const adminTo = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM;
+      const adminTo = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || 'yeab@scholarpathway.com';
       if (adminTo) {
         const emailResult = await sendEmail({
           to: adminTo,
-          subject: 'New Contact Message from ScholarPathway',
+          subject: '📬 New Contact Message from ScholarPathway - Urgent Response Needed!',
           html: `
-            <div style="font-family: 'Poppins', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h2 style="color: #0055FF;">New Contact Message</h2>
-              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <p><strong>Name:</strong> ${cleanName}</p>
-                <p><strong>Email:</strong> <a href="mailto:${cleanEmail}">${cleanEmail}</a></p>
-                <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>New Contact Message</title>
+              <style>
+                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'Poppins', Arial, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; }
+                .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+                .header { background: linear-gradient(135deg, #DC3545 0%, #C82333 100%); padding: 25px; text-align: center; color: white; }
+                .urgent-badge { background: #FFD700; color: #333; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 10px; display: inline-block; }
+                .content { padding: 30px; }
+                .contact-info { background: #f8f9ff; border-radius: 10px; padding: 25px; margin: 20px 0; border-left: 5px solid #0055FF; }
+                .info-row { display: flex; margin-bottom: 15px; align-items: center; }
+                .info-label { font-weight: 600; color: #0055FF; min-width: 80px; margin-right: 10px; }
+                .info-value { flex: 1; }
+                .message-box { background: #ffffff; border: 2px solid #e9ecef; border-radius: 10px; padding: 25px; margin: 20px 0; }
+                .message-header { background: #0055FF; color: white; margin: -25px -25px 20px -25px; padding: 15px 25px; font-weight: 600; }
+                .message-text { font-size: 16px; line-height: 1.6; white-space: pre-wrap; color: #333; }
+                .action-buttons { text-align: center; margin: 30px 0; }
+                .btn { display: inline-block; padding: 12px 25px; margin: 0 10px; text-decoration: none; border-radius: 5px; font-weight: 600; }
+                .btn-primary { background: #0055FF; color: white; }
+                .btn-secondary { background: #6c757d; color: white; }
+                .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 14px; color: #666; }
+                .priority-high { border-left: 5px solid #DC3545; background: #fff5f5; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <div class="urgent-badge">HIGH PRIORITY</div>
+                  <h2>📬 New Contact Message Received</h2>
+                  <p>Someone reached out through ScholarPathway</p>
+                </div>
+                
+                <div class="content">
+                  <div class="contact-info priority-high">
+                    <h3 style="color: #DC3545; margin-bottom: 20px;">👤 Contact Information</h3>
+                    <div class="info-row">
+                      <span class="info-label">Name:</span>
+                      <span class="info-value"><strong>${cleanName}</strong></span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Email:</span>
+                      <span class="info-value"><a href="mailto:${cleanEmail}" style="color: #0055FF;">${cleanEmail}</a></span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Time:</span>
+                      <span class="info-value">${new Date().toLocaleString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        timeZoneName: 'short'
+                      })}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Source:</span>
+                      <span class="info-value">ScholarPathway Contact Form</span>
+                    </div>
+                  </div>
+                  
+                  <div class="message-box">
+                    <div class="message-header">
+                      📝 Message Content
+                    </div>
+                    <div class="message-text">${cleanMessage}</div>
+                  </div>
+                  
+                  <div class="action-buttons">
+                    <a href="mailto:${cleanEmail}?subject=Re: Your inquiry to ScholarPathway&body=Hi ${cleanName},%0D%0A%0D%0AThank you for contacting ScholarPathway. " class="btn btn-primary">
+                      📧 Reply Now
+                    </a>
+                    <a href="${process.env.SITE_URL || 'https://scholarpathway.glitch.me'}/admin" class="btn btn-secondary">
+                      📈 View Dashboard
+                    </a>
+                  </div>
+                  
+                  <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="color: #0055FF; margin-bottom: 10px;">🚀 Recommended Response Time</h4>
+                    <p style="margin: 0; color: #666;">Please respond within <strong>24 hours</strong> to maintain our professional reputation and help this student achieve their educational goals.</p>
+                  </div>
+                </div>
+                
+                <div class="footer">
+                  <p><strong>ScholarPathway Admin Panel</strong></p>
+                  <p>This is an automated notification. Do not reply to this email.</p>
+                  <p style="margin-top: 10px; font-size: 12px;">
+                    © ${new Date().getFullYear()} ScholarPathway. Helping students worldwide.
+                  </p>
+                </div>
               </div>
-              <div style="background: white; padding: 20px; border: 1px solid #dee2e6; border-radius: 8px;">
-                <h4 style="margin-top: 0;">Message:</h4>
-                <p style="white-space: pre-wrap;">${cleanMessage}</p>
-              </div>
-            </div>
+            </body>
+            </html>
           `
         });
         
@@ -969,29 +1055,161 @@ exports.subscribe = async (req, res) => {
       }
     }
 
-    // Send welcome email (if email service configured)
+    // Send professional welcome email
     try {
       const emailResult = await sendEmail({
         to: cleanEmail,
-        subject: 'Welcome to ScholarPathway 🎓',
+        subject: '🎓 Welcome to ScholarPathway - Your Educational Journey Starts Here!',
         html: `
-          <div style="font-family: 'Poppins', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #0055FF; text-align: center;">Welcome to ScholarPathway!</h2>
-            <p>Hi there! 👋</p>
-            <p>Thank you for subscribing to our newsletter. You\'re now part of a community of students pursuing their educational dreams worldwide!</p>
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="color: #0055FF; margin-top: 0;">What to expect:</h3>
-              <ul>
-                <li>🎓 Weekly scholarship opportunities</li>
-                <li>📝 Application tips and guides</li>
-                <li>🌍 Study abroad insights</li>
-                <li>📅 Important deadline reminders</li>
-              </ul>
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Welcome to ScholarPathway</title>
+            <!--[if mso]>
+            <noscript>
+              <xml>
+                <o:OfficeDocumentSettings>
+                  <o:PixelsPerInch>96</o:PixelsPerInch>
+                </o:OfficeDocumentSettings>
+              </xml>
+            </noscript>
+            <![endif]-->
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { font-family: 'Poppins', Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
+              .header { background: linear-gradient(135deg, #0055FF 0%, #0040CC 100%); padding: 30px 20px; text-align: center; }
+              .logo { color: white; font-size: 28px; font-weight: 700; margin-bottom: 10px; }
+              .tagline { color: rgba(255,255,255,0.9); font-size: 16px; }
+              .content { padding: 40px 30px; }
+              .welcome-title { color: #0055FF; font-size: 28px; font-weight: 600; margin-bottom: 20px; text-align: center; }
+              .intro { font-size: 16px; margin-bottom: 30px; text-align: center; color: #666; }
+              .benefits-box { background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%); border-radius: 15px; padding: 30px; margin: 30px 0; border-left: 5px solid #0055FF; }
+              .benefits-title { color: #0055FF; font-size: 20px; font-weight: 600; margin-bottom: 20px; }
+              .benefits-list { list-style: none; padding: 0; }
+              .benefits-list li { padding: 12px 0; border-bottom: 1px solid rgba(0,85,255,0.1); display: flex; align-items: center; }
+              .benefits-list li:last-child { border-bottom: none; }
+              .benefit-icon { background: #0055FF; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 16px; }
+              .cta-section { text-align: center; margin: 40px 0; }
+              .cta-button { display: inline-block; background: linear-gradient(135deg, #0055FF 0%, #0040CC 100%); color: white; padding: 15px 35px; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 16px; transition: transform 0.3s ease; }
+              .stats-grid { display: flex; gap: 20px; margin: 30px 0; }
+              .stat-item { flex: 1; text-align: center; padding: 20px; background: #f8f9ff; border-radius: 10px; }
+              .stat-number { font-size: 24px; font-weight: 700; color: #0055FF; }
+              .stat-label { font-size: 14px; color: #666; margin-top: 5px; }
+              .footer { background: #f8f9fa; padding: 30px; text-align: center; font-size: 14px; color: #666; }
+              .social-links { margin: 20px 0; }
+              .social-links a { display: inline-block; margin: 0 10px; color: #0055FF; text-decoration: none; }
+              @media (max-width: 600px) {
+                .content { padding: 30px 20px; }
+                .stats-grid { flex-direction: column; }
+                .welcome-title { font-size: 24px; }
+                .cta-button { padding: 12px 25px; font-size: 14px; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <!-- Header -->
+              <div class="header">
+                <div class="logo">ScholarPathway</div>
+                <div class="tagline">Your Gateway to Global Education</div>
+              </div>
+              
+              <!-- Main Content -->
+              <div class="content">
+                <h1 class="welcome-title">Welcome to Your Success Journey! 🚀</h1>
+                <p class="intro">
+                  Thank you for joining <strong>25,000+</strong> students who trust ScholarPathway to find their perfect educational opportunities. You've just taken the first step toward achieving your academic dreams!
+                </p>
+                
+                <!-- Stats -->
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <div class="stat-number">$15M+</div>
+                    <div class="stat-label">Scholarships Found</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-number">100+</div>
+                    <div class="stat-label">Countries Covered</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-number">95%</div>
+                    <div class="stat-label">Success Rate</div>
+                  </div>
+                </div>
+                
+                <!-- Benefits -->
+                <div class="benefits-box">
+                  <h3 class="benefits-title">🎯 What You'll Get Every Week:</h3>
+                  <ul class="benefits-list">
+                    <li>
+                      <div class="benefit-icon">🎓</div>
+                      <div>
+                        <strong>Exclusive Scholarship Alerts</strong><br>
+                        <small>Be first to know about new opportunities matching your profile</small>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="benefit-icon">📝</div>
+                      <div>
+                        <strong>Expert Application Tips</strong><br>
+                        <small>Proven strategies from successful scholarship recipients</small>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="benefit-icon">🌍</div>
+                      <div>
+                        <strong>Study Abroad Insights</strong><br>
+                        <small>Country guides, visa tips, and cultural preparation</small>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="benefit-icon">⏰</div>
+                      <div>
+                        <strong>Deadline Reminders</strong><br>
+                        <small>Never miss an application deadline again</small>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                
+                <!-- CTA -->
+                <div class="cta-section">
+                  <p style="margin-bottom: 20px;"><strong>Ready to find your perfect scholarship?</strong></p>
+                  <a href="${process.env.SITE_URL || 'https://scholarpathway.glitch.me'}/scholarships" class="cta-button">
+                    🔍 Browse 100+ Scholarships Now
+                  </a>
+                </div>
+                
+                <p style="text-align: center; margin-top: 30px; color: #666;">
+                  <strong>Pro Tip:</strong> Bookmark our <a href="${process.env.SITE_URL || 'https://scholarpathway.glitch.me'}/tips" style="color: #0055FF;">Tips Section</a> for daily application strategies!
+                </p>
+              </div>
+              
+              <!-- Footer -->
+              <div class="footer">
+                <div class="social-links">
+                  <a href="#">Facebook</a> |
+                  <a href="#">Twitter</a> |
+                  <a href="#">LinkedIn</a> |
+                  <a href="#">Instagram</a>
+                </div>
+                <p>
+                  <strong>ScholarPathway</strong><br>
+                  Helping students worldwide achieve their educational dreams<br>
+                  <small>You can <a href="#" style="color: #0055FF;">unsubscribe</a> anytime. We respect your privacy.</small>
+                </p>
+                <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                  © ${new Date().getFullYear()} ScholarPathway. All rights reserved.<br>
+                  This email was sent because you subscribed to our newsletter.
+                </p>
+              </div>
             </div>
-            <p>Start exploring scholarships: <a href="${process.env.SITE_URL || 'https://scholarpathway.com'}/scholarships" style="color: #0055FF;">Browse Now</a></p>
-            <p>Best of luck with your applications!</p>
-            <p style="color: #666; font-size: 12px; margin-top: 30px;">You can unsubscribe at any time using the link at the bottom of our emails.</p>
-          </div>
+          </body>
+          </html>
         `
       });
       
