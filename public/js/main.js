@@ -9,17 +9,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Newsletter subscription handling
+  // Newsletter subscription handling with fallback
   const newsletterForm = document.getElementById('newsletter-form');
   if (newsletterForm) {
     newsletterForm.addEventListener('submit', handleNewsletterSubmission);
   }
 
-  // Contact form handling
+  // Contact form handling with fallback
   const contactForm = document.getElementById('contact-form');
   if (contactForm) {
     contactForm.addEventListener('submit', handleContactSubmission);
   }
+  
+  // Fallback: Remove AJAX and let forms submit normally if AJAX fails
+  window.addEventListener('load', function() {
+    // If forms still fail after 5 seconds, disable AJAX
+    setTimeout(function() {
+      if (window.ajaxFormsFailed) {
+        console.log('AJAX forms failed, switching to normal form submission');
+        disableAjaxForms();
+      }
+    }, 5000);
+  });
 
   // Search form enhancements
   const searchForm = document.querySelector('.search-bar form');
@@ -52,110 +63,92 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Newsletter subscription handler
 async function handleNewsletterSubmission(e) {
-  e.preventDefault();
-  
   const form = e.target;
   const submitBtn = form.querySelector('button[type="submit"]');
   const originalText = submitBtn.textContent;
   
-  // Get form data as URL-encoded string
-  const formData = new FormData(form);
-  const data = new URLSearchParams(formData);
-  
-  // Add CSRF token if available
-  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-                   document.querySelector('input[name="_csrf"]')?.value;
-  if (csrfToken) {
-    data.append('_csrf', csrfToken);
-  }
-  
+  // Try AJAX first, fallback to normal form submission
   try {
+    e.preventDefault();
     submitBtn.disabled = true;
     submitBtn.textContent = 'Subscribing...';
     
+    // Simple fetch without complex headers
+    const formData = new FormData(form);
+    
     const response = await fetch('/subscribe', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: data
+      body: formData
     });
     
-    let result;
-    try {
-      result = await response.json();
-    } catch {
-      result = { error: 'Invalid server response' };
-    }
-    
     if (response.ok) {
-      showMessage('success', result.success || 'Successfully subscribed to newsletter! 🎉');
+      const result = await response.json().catch(() => ({ success: 'Subscribed successfully!' }));
+      showMessage('success', result.success || 'Successfully subscribed! 🎉');
       form.reset();
     } else {
-      showMessage('error', result.error || 'Subscription failed. Please try again.');
+      throw new Error('Server error');
     }
   } catch (error) {
-    console.error('Newsletter submission error:', error);
-    showMessage('error', 'Connection failed. Please check your internet and try again.');
-  } finally {
+    console.error('AJAX failed, using normal form submission:', error);
+    window.ajaxFormsFailed = true;
+    
+    // Reset button and submit normally
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
+    
+    // Remove event listener and submit normally
+    form.removeEventListener('submit', handleNewsletterSubmission);
+    form.submit();
+    return;
   }
+  
+  submitBtn.disabled = false;
+  submitBtn.textContent = originalText;
 }
 
 // Contact form handler
 async function handleContactSubmission(e) {
-  e.preventDefault();
-  
   const form = e.target;
   const submitBtn = form.querySelector('button[type="submit"]');
   const originalText = submitBtn.textContent;
   
-  // Get form data as URL-encoded string
-  const formData = new FormData(form);
-  const data = new URLSearchParams(formData);
-  
-  // Add CSRF token if available
-  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-                   document.querySelector('input[name="_csrf"]')?.value;
-  if (csrfToken) {
-    data.append('_csrf', csrfToken);
-  }
-  
+  // Try AJAX first, fallback to normal form submission
   try {
+    e.preventDefault();
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
     
+    // Simple fetch without complex headers
+    const formData = new FormData(form);
+    
     const response = await fetch('/contact', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: data
+      body: formData
     });
     
-    let result;
-    try {
-      result = await response.json();
-    } catch {
-      result = { error: 'Invalid server response' };
-    }
-    
     if (response.ok) {
-      showMessage('success', result.success || 'Message sent successfully! We\'ll get back to you within 24-48 hours. 🚀');
+      const result = await response.json().catch(() => ({ success: 'Message sent successfully!' }));
+      showMessage('success', result.success || 'Message sent! We\'ll get back to you soon. 🚀');
       form.reset();
     } else {
-      showMessage('error', result.error || 'Failed to send message. Please try again.');
+      throw new Error('Server error');
     }
   } catch (error) {
-    console.error('Contact form submission error:', error);
-    showMessage('error', 'Connection failed. Please check your internet and try again.');
-  } finally {
+    console.error('AJAX failed, using normal form submission:', error);
+    window.ajaxFormsFailed = true;
+    
+    // Reset button and submit normally
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
+    
+    // Remove event listener and submit normally
+    form.removeEventListener('submit', handleContactSubmission);
+    form.submit();
+    return;
   }
+  
+  submitBtn.disabled = false;
+  submitBtn.textContent = originalText;
 }
 
 // Search suggestions (placeholder for future enhancement)
@@ -263,6 +256,21 @@ function showMessage(type, message) {
       alertDiv.remove();
     }
   }, 5000);
+}
+
+// Fallback function to disable AJAX forms
+function disableAjaxForms() {
+  console.log('Disabling AJAX forms, using normal form submission');
+  
+  // Remove AJAX handlers from all forms
+  const forms = document.querySelectorAll('form');
+  forms.forEach(form => {
+    // Clone form to remove all event listeners
+    const newForm = form.cloneNode(true);
+    form.parentNode.replaceChild(newForm, form);
+  });
+  
+  showMessage('info', 'Forms switched to standard submission mode');
 }
 
 // Export for potential use in other scripts

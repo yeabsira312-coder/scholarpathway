@@ -783,9 +783,12 @@ exports.about = (req, res) => {
 
 // Contact page
 exports.contact = (req, res) => {
+  const success = req.query.submitted === 'true' ? 'Thank you for your message! We\'ll get back to you within 24-48 hours. 🚀' : null;
+  
   res.render('pages/contact', {
     title: 'Contact Us - ScholarPathway',
     description: 'Get in touch with ScholarPathway. We\'re here to help with your scholarship and study abroad questions.',
+    success: success,
     currentUrl: req.originalUrl
   });
 };
@@ -982,12 +985,8 @@ exports.contactSubmit = async (req, res) => {
       return res.json({ success: successMessage });
     }
     
-    res.render('pages/contact', {
-      title: 'Contact Us - ScholarPathway',
-      description: 'Get in touch with ScholarPathway.',
-      success: successMessage,
-      currentUrl: req.originalUrl
-    });
+    // Redirect to prevent form resubmission
+    res.redirect('/contact?submitted=true');
   } catch (error) {
     console.error('❌ Contact submit error:', error);
     const errorMessage = 'Failed to send message. Please try again.';
