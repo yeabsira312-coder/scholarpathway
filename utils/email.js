@@ -17,7 +17,11 @@ async function sendEmail({ to, subject, html, text }) {
           to, 
           subject, 
           html,
-          text: text || 'Please view this email in HTML format.'
+          text: text || 'Please view this email in HTML format.',
+          reply_to: ADMIN_EMAIL || EMAIL_FROM,
+          headers: {
+            'List-Unsubscribe': `<${process.env.SITE_URL || 'https://scholarpathway.glitch.me'}/contact>`
+          }
         })
       });
       
