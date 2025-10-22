@@ -13,19 +13,11 @@ async function sendEmail({ to, subject, html, text }) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          from: EMAIL_FROM,
+          from: EMAIL_FROM, 
           to, 
           subject, 
           html,
-          text: text || extractTextFromHtml(html),
-          reply_to: ADMIN_EMAIL || EMAIL_FROM,
-          headers: {
-            'X-Entity-Ref-ID': `sp-${Date.now()}`,
-            'List-Unsubscribe': `<${process.env.SITE_URL || 'https://scholarpathway.glitch.me'}/unsubscribe>`,
-            'X-Priority': '3',
-            'X-Mailer': 'ScholarPathway',
-            'X-Auto-Response-Suppress': 'OOF, AutoReply'
-          }
+          text: text || 'Please view this email in HTML format.'
         })
       });
       
@@ -77,27 +69,6 @@ function fallbackEmailLog({ to, subject, html }) {
     id: `log_${Date.now()}`,
     message: 'Email logged to console (no actual email sent)'
   };
-}
-
-// Helper function to extract plain text from HTML (to avoid spam filters)
-function extractTextFromHtml(html) {
-  if (!html) return '';
-  
-  // Remove HTML tags and normalize whitespace
-  let text = html
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '') // Remove style blocks
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') // Remove script blocks
-    .replace(/<[^>]+>/g, ' ') // Remove HTML tags
-    .replace(/\s+/g, ' ') // Normalize whitespace
-    .replace(/&[a-zA-Z0-9#]+;/g, ' ') // Remove HTML entities
-    .trim();
-    
-  // Limit length to avoid being too long
-  if (text.length > 1000) {
-    text = text.substring(0, 1000) + '...';
-  }
-  
-  return text;
 }
 
 module.exports = { sendEmail, ADMIN_EMAIL };
