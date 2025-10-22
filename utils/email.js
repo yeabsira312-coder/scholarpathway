@@ -3,8 +3,12 @@ const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@scholarpathway.com';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM;
 
 async function sendEmail({ to, subject, html, text }) {
+  console.log(`📧 Attempting to send email to: ${to}`);
+  console.log(`📧 Subject: ${subject}`);
+  
   // Option 1: Use Resend API (Professional)
   if (RESEND_API_KEY && EMAIL_FROM) {
+    console.log(`📧 Using Resend API with from address: ${EMAIL_FROM}`);
     try {
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -27,7 +31,18 @@ async function sendEmail({ to, subject, html, text }) {
       
       if (!res.ok) {
         const errorText = await res.text().catch(() => '');
-        console.error(`❌ Resend API failed: ${res.status} ${errorText}`);
+        console.error(`❌ Resend API failed: ${res.status} ${res.statusText}`);
+        console.error(`❌ Error details:`, errorText);
+        console.error(`❌ Attempted to send to: ${to}`);
+        console.error(`❌ From address: ${EMAIL_FROM}`);
+        
+        // If it's a domain verification or sandbox issue, show specific message
+        if (errorText.includes('domain') || errorText.includes('verify') || errorText.includes('sandbox')) {
+          console.error('🚨 DOMAIN ISSUE: Your Resend account may need domain verification or is in sandbox mode');
+          console.error('   - Go to https://resend.com/domains to verify your domain');
+          console.error('   - Or add the recipient email to your verified addresses');
+        }
+        
         return fallbackEmailLog({ to, subject, html });
       }
       
@@ -46,12 +61,17 @@ async function sendEmail({ to, subject, html, text }) {
 
 // Fallback function that logs emails to console
 function fallbackEmailLog({ to, subject, html }) {
-  console.log('\n📧 EMAIL WOULD BE SENT:');
-  console.log('=======================');
+  console.log('\n📧 EMAIL FALLBACK - EMAIL NOT ACTUALLY SENT:');
+  console.log('================================================');
   console.log(`To: ${to}`);
   console.log(`Subject: ${subject}`);
   console.log(`HTML Content: ${html.substring(0, 200)}...`);
-  console.log('=======================\n');
+  console.log('================================================');
+  console.log('🚨 POSSIBLE SOLUTIONS:');
+  console.log('1. Check if RESEND_API_KEY is set in environment variables');
+  console.log('2. Verify your domain at https://resend.com/domains');
+  console.log('3. Check if recipient email is in your Resend sandbox allowed list');
+  console.log('4. Make sure EMAIL_FROM domain matches your verified domain\n');
   
   // For contact form emails to admin, also save to a simple log
   if (to === ADMIN_EMAIL) {
