@@ -232,7 +232,8 @@
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
-              'X-Requested-With': 'XMLHttpRequest'
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: data
           });
@@ -247,7 +248,11 @@
           }
         } catch (error) {
           console.error('Newsletter subscription error:', error);
-          showToast('Network error. Please try again.', 'error');
+          if (error.message && error.message.includes('csrf')) {
+            showToast('Security validation failed. Please refresh the page and try again.', 'error');
+          } else {
+            showToast('Subscription failed. Please try again.', 'error');
+          }
         } finally {
           submitBtn.textContent = originalText;
           submitBtn.disabled = false;

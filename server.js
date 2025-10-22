@@ -51,7 +51,12 @@ app.use(cookieSession({
   maxAge: 7 * 24 * 60 * 60 * 1000
 }));
 
-app.use(csrf());
+app.use(csrf({
+  value: (req) => {
+    // Accept CSRF token from multiple sources: body, query, or headers
+    return req.body._csrf || req.query._csrf || req.headers['x-csrf-token'];
+  }
+}));
 
 app.use((req, res, next) => {
   res.locals.csrfToken = req.csrfToken();
@@ -90,9 +95,28 @@ app.use((req, res) => {
   res.status(404).render('pages/404', { title: 'Page Not Found' });
 });
 
-// 500
+// Error handling
 app.use((err, req, res, next) => {
   console.error(err);
+  
+  // Handle CSRF errors specifically
+  if (err.code === 'EBADCSRFTOKEN') {
+    if (req.headers['x-requested-with'] === 'XMLHttpRequest' || (req.headers.accept || '').includes('application/json')) {
+      return res.status(403).json({ 
+        error: 'Security validation failed. Please refresh the page and try again.' 
+      });
+    }
+    return res.status(403).render('pages/404', { 
+      title: 'Security Error',
+      description: 'Invalid security token. Please refresh and try again.'
+    });
+  }
+  
+  // Handle other errors
+  if (req.headers['x-requested-with'] === 'XMLHttpRequest' || (req.headers.accept || '').includes('application/json')) {
+    return res.status(500).json({ error: 'An error occurred. Please try again.' });
+  }
+  
   res.status(500).render('pages/500', { title: 'Server Error' });
 });
 

@@ -77,4 +77,11 @@ router.get('/terms', (req, res) => {
   });
 });
 
+router.get('/unsubscribe', (req, res) => {
+  res.render('pages/unsubscribe', {
+    title: 'Unsubscribe - ScholarPathway',
+    description: 'Unsubscribe from our newsletter'
+  });
+});
+
 module.exports = router;

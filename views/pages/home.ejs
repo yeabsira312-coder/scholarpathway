@@ -277,7 +277,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const response = await fetch('/subscribe', {
           method: 'POST',
           headers: {
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
           },
           body: formData
         });
@@ -299,9 +300,13 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
           showError(result.error || 'Subscription failed. Please try again.');
         }
-      } catch (error) {
+        } catch (error) {
         console.error('Newsletter subscription error:', error);
-        showError('Network error. Please check your connection and try again.');
+        if (error.message && error.message.includes('csrf')) {
+          showError('Security validation failed. Please refresh the page and try again.');
+        } else {
+          showError('Subscription failed. Please try again.');
+        }
       } finally {
         // Restore button state
         submitBtn.innerHTML = originalBtnText;
